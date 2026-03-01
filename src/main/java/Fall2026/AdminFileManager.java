@@ -34,8 +34,6 @@ public class AdminFileManager {
             }
             System.out.println("Loaded " + admins.size() + " admins from file.");
         }
-
-
     }
     private void createDefaultAdmin() {
         Admin defaultAdmin = new Admin("admin", "admin123");
@@ -57,6 +55,7 @@ public class AdminFileManager {
         }
 
     }
+
     public void addNewAdmin(String username, String password) {
         Admin newAdmin = new Admin(username, password);
         admins.add(newAdmin);
@@ -72,7 +71,9 @@ public class AdminFileManager {
             }
         }
         return null;
+
     }
+
 
 }
 
