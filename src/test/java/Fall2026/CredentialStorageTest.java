@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class CredentialStorageTest extends junit.framework.TestCase {
+class CredentialStorageTest {
 
     @Test
     void readFromFile() {
