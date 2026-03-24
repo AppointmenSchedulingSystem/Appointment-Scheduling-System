@@ -1,19 +1,8 @@
 package Fall2026;
-/*
-US1.1 – Administrator login
-As an administrator, I want to log into the system using my credentials so that I can manage
-schedules and reservations.
-Acceptance: - Valid credentials → login success - Invalid credentials → error message
-*/
-/*
-US1.2 – Administrator logout
-As an administrator, I want to log out so that my session is closed securely.
-Acceptance: - After logout, admin actions require re-login
- */
 
 
 import java.util.Date;
-
+//need update Admin must extend User
 public class Admin {
    private String AdminName;
    private String AdminPassword;

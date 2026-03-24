@@ -2,6 +2,7 @@ package Fall2026;
 
 import org.junit.jupiter.api.*;
 
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AdminTest  {
@@ -35,6 +36,7 @@ class AdminTest  {
 
         admin.Logout();
         assertFalse(admin.IsLoggedIn());
+
     }
 
     @Test
