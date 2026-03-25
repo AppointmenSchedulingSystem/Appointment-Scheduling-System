@@ -14,16 +14,16 @@ public class Schedule {
     public void addSlot(TimeSlot slot) {
         allSlots.add(slot);
     }
-    public List<TimeSlot> getAvailableSlots() {
-        return allSlots.stream()
-                .filter(s -> !s.isBooked())
-                .collect(Collectors.toList());
-    }
-    public List<TimeSlot> getAvailableSlotsForDay(LocalDate date) {
-        return allSlots.stream()
-                .filter(s -> !s.isBooked() && s.getDate().equals(date))
-                .collect(Collectors.toList());
-    }
+//    public List<TimeSlot> getAvailableSlots() {
+//        return allSlots.stream()
+//                .filter(s -> !s.isBooked())
+//                .collect(Collectors.toList());
+//    }
+public List<TimeSlot> getAvailableSlotsForDay(LocalDate date) {
+    return allSlots.stream()
+            .filter(s -> s.getDate().equals(date))
+            .collect(Collectors.toList());
+}
 
     public List<LocalDate> getAvailableDays() {
         return allSlots.stream()

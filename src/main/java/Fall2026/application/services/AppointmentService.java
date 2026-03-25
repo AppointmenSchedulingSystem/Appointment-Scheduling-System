@@ -104,6 +104,8 @@ public class AppointmentService {
         }
         return null;
     }
-
+    public void addSlot(TimeSlot slot) {
+        schedule.addSlot(slot);
+    }
 
 }
