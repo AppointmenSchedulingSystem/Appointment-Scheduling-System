@@ -1,4 +1,4 @@
-package Fall2026;
+package Fall2026.infrastructure.persistence;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AdminFileManagerTest{
+class AdminFileManagerTest {
 
     @BeforeEach
     void setUp() {

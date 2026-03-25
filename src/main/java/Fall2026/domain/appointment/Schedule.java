@@ -1,4 +1,4 @@
-package Fall2026;
+package Fall2026.domain.appointment;
 
 import java.time.LocalDate;
 import java.util.ArrayList;

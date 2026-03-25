@@ -1,4 +1,4 @@
-package Fall2026;
+package Fall2026.infrastructure.persistence;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AppointmentServiceTest  {
+class CredentialStorageTest {
 
     @BeforeEach
     void setUp() {
@@ -17,22 +17,18 @@ class AppointmentServiceTest  {
     }
 
     @Test
-    void getAvailableDays() {
+    void readFromFile() {
     }
 
     @Test
-    void getSlotsForDay() {
+    void writeToFile() {
     }
 
     @Test
-    void bookAppointment() {
+    void appendToFile() {
     }
 
     @Test
-    void cancelAppointment() {
-    }
-
-    @Test
-    void getAllAppointments() {
+    void fileExists() {
     }
 }

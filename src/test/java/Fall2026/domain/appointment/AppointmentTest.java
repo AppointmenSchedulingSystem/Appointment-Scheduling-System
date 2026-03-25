@@ -1,12 +1,11 @@
-package Fall2026;
+package Fall2026.domain.appointment;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
-
-class ScheduleTest  {
+class AppointmentTest {
 
     @BeforeEach
     void setUp() {
@@ -17,18 +16,26 @@ class ScheduleTest  {
     }
 
     @Test
-    void addSlot() {
+    void addBooking() {
     }
 
     @Test
-    void getAvailableSlots() {
+    void getTimeSlot() {
     }
 
     @Test
-    void getAvailableSlotsForDay() {
+    void getDescription() {
     }
 
     @Test
-    void getAvailableDays() {
+    void getMaxCapacity() {
+    }
+
+    @Test
+    void getCurrentBookings() {
+    }
+
+    @Test
+    void isAvailable() {
     }
 }
