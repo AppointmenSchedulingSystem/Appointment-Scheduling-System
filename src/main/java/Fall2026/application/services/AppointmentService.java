@@ -3,6 +3,7 @@ package Fall2026.application.services;
 import Fall2026.domain.appointment.Appointment;
 import Fall2026.domain.appointment.Schedule;
 import Fall2026.domain.appointment.TimeSlot;
+import Fall2026.domain.exceptions.ValidationException;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 public class AppointmentService {
     private Schedule schedule;
     private List<Appointment> appointments;
+    private static final int MAX_DURATION_MINUTES = 120;
 
     public AppointmentService(Schedule schedule) {
         this.schedule = schedule;
@@ -49,6 +51,10 @@ public class AppointmentService {
 
     public Appointment bookAppointment(TimeSlot slot, String description, int maxCapacity) {
 
+        if (slot.getDuration().toMinutes() > MAX_DURATION_MINUTES) {
+            throw new ValidationException("Duration exceeds 2 hour maximum");
+        }
+
         Appointment appointment = findAppointmentBySlot(slot);
 
         // First booking for this slot: create the appointment record
@@ -59,12 +65,12 @@ public class AppointmentService {
 
         // Slot exists but is full
         if (appointment.isFull()) {
-            System.out.println("Sorry, that slot is fully booked.");
-            return null;
+            throw new ValidationException("Sorry, that slot is fully booked.");
+            //return null;
         }
 
         appointment.addBooking();
-        System.out.println("Booked: " + slot.getDate() + " at " + slot.getStartTime());
+        //System.out.println("Booked: " + slot.getDate() + " at " + slot.getStartTime());
         return appointment;
     }
 
@@ -77,8 +83,8 @@ public class AppointmentService {
     public boolean cancelAppointment(Appointment appointment) {
 
         if (appointment.getTimeSlot().getDate().isBefore(LocalDate.now())) {
-            System.out.println("Cannot cancel a past appointment.");
-            return false;
+            throw new ValidationException("Cannot cancel a past appointment.");
+            //return false;
         }
 
         // You need appointment.removeBooking() + getBookingsCount()
@@ -88,7 +94,7 @@ public class AppointmentService {
             appointments.remove(appointment);
         }
 
-        System.out.println("Cancelled booking on " + appointment.getTimeSlot().getDate());
+      //  System.out.println("Cancelled booking on " + appointment.getTimeSlot().getDate());
         return true;
     }
     // UTILITY

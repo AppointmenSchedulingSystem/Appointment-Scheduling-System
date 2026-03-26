@@ -3,9 +3,18 @@ package Fall2026.domain.appointment;
 import Fall2026.domain.exceptions.ValidationException;
 
 public class Appointment {
+
+
+
     private final TimeSlot timeSlot;       // the actual slot reserved
     private final String description;
     private final int maxCapacity;
+    private AppointmentStatus status;
+
+    public enum AppointmentStatus
+    {
+        CONFIRMED, PENDING, CANCELLED
+    }
 
     private int currentBookings;
 
@@ -18,6 +27,7 @@ public class Appointment {
         this.description = description;
         this.maxCapacity = maxCapacity;
         this.currentBookings = 0;
+        this.status = AppointmentStatus.CONFIRMED;
     }
 
     public TimeSlot getTimeSlot() {
@@ -59,4 +69,14 @@ public class Appointment {
         }
         currentBookings--;
     }
+
+
+    public AppointmentStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(AppointmentStatus status) {
+        this.status = status;
+    }
+
 }

@@ -1,5 +1,8 @@
 package Fall2026.domain.appointment;
 
+import Fall2026.domain.exceptions.ValidationException;
+
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Objects;
@@ -9,31 +12,28 @@ public class TimeSlot {
     private final LocalTime startTime;
     private final LocalTime endTime;
 
-    // Keep for now if other code still uses it (but service should ignore it)
-    private boolean isBooked;
+
 
     public TimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime) {
+        if (endTime.isBefore(startTime) || endTime.equals(startTime)) {
+            throw new ValidationException("End time must be after start time");
+        }
         this.date = date;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.isBooked = false;
+
     }
 
-    // OLD API (try not to use it anymore for capacity-based booking)
-    public boolean markBooked() {
-        if (isBooked) return false;
-        isBooked = true;
-        return true;
-    }
-
-    public void markAvailable() {
-        this.isBooked = false;
-    }
 
     public LocalDate getDate() { return date; }
     public LocalTime getStartTime() { return startTime; }
     public LocalTime getEndTime() { return endTime; }
-    public boolean isBooked() { return isBooked; }
+
+
+    public Duration getDuration() {
+        return Duration.between(startTime, endTime);
+    }
+
 
     @Override
     public boolean equals(Object o) {
