@@ -47,6 +47,10 @@ public class UserShell {
                     handleBook();
                     break;
 
+                case "modify":
+                    handleModify();
+                    break;
+
                 case "cancel":
                     handleCancel();
                     break;
@@ -81,6 +85,7 @@ public class UserShell {
         System.out.println("  help       Show this help message");
         System.out.println("  slots      View available appointment slots");
         System.out.println("  book       Book an appointment slot");
+        System.out.println("  modify     Modify an existing appointment");
         System.out.println("  cancel     Cancel an existing appointment");
         System.out.println("  signout    Sign out of your account");
         System.out.println("  exit       Exit the system");
@@ -230,6 +235,98 @@ public class UserShell {
         try {
             appointmentService.cancelAppointment(toCancel);
             System.out.println("  ✓ Appointment cancelled successfully.");
+        } catch (ValidationException e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+        System.out.println();
+    }
+
+    private void handleModify() {
+        List<Appointment> appointments = appointmentService.getAllAppointments();
+
+        if (appointments.isEmpty()) {
+            System.out.println("  No appointments to modify.");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("  Your appointments:");
+        System.out.println("  ─────────────────────────────────────────────");
+        for (int i = 0; i < appointments.size(); i++) {
+            Appointment appt = appointments.get(i);
+            TimeSlot slot = appt.getTimeSlot();
+            System.out.println("  [" + (i + 1) + "] "
+                    + slot.getDate() + "  "
+                    + slot.getStartTime() + " → " + slot.getEndTime());
+        }
+        System.out.println("  ─────────────────────────────────────────────");
+
+        System.out.print("  Select appointment number to modify: ");
+        String choice = scanner.nextLine().trim();
+
+        int index;
+        try {
+            index = Integer.parseInt(choice) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid input. Enter a number.");
+            return;
+        }
+
+        if (index < 0 || index >= appointments.size()) {
+            System.out.println("  ✗ Invalid appointment number.");
+            return;
+        }
+
+        Appointment toModify = appointments.get(index);
+
+        System.out.print("  Enter new date (YYYY-MM-DD): ");
+        String dateInput = scanner.nextLine().trim();
+
+        LocalDate newDate;
+        try {
+            newDate = LocalDate.parse(dateInput);
+        } catch (DateTimeParseException e) {
+            System.out.println("  ✗ Invalid date format. Use YYYY-MM-DD (e.g. 2026-04-01).");
+            return;
+        }
+
+        List<TimeSlot> slots = appointmentService.getSlotsForDay(newDate);
+
+        if (slots.isEmpty()) {
+            System.out.println("  No available slots for " + newDate + ".");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("  Available slots for " + newDate + ":");
+        for (int i = 0; i < slots.size(); i++) {
+            TimeSlot slot = slots.get(i);
+            System.out.println("  [" + (i + 1) + "] " + slot.getStartTime() + " → " + slot.getEndTime());
+        }
+
+        System.out.print("  Select new slot number: ");
+        String slotChoice = scanner.nextLine().trim();
+
+        int slotIndex;
+        try {
+            slotIndex = Integer.parseInt(slotChoice) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid input. Enter a number.");
+            return;
+        }
+
+        if (slotIndex < 0 || slotIndex >= slots.size()) {
+            System.out.println("  ✗ Invalid slot number.");
+            return;
+        }
+
+        TimeSlot newSlot = slots.get(slotIndex);
+
+        try {
+            appointmentService.modifyAppointment(toModify, newSlot);
+            System.out.println("  ✓ Appointment modified: "
+                    + newSlot.getDate() + "  "
+                    + newSlot.getStartTime() + " → " + newSlot.getEndTime());
         } catch (ValidationException e) {
             System.out.println("  ✗ " + e.getMessage());
         }

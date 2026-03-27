@@ -97,6 +97,20 @@ public class AppointmentService {
       //  System.out.println("Cancelled booking on " + appointment.getTimeSlot().getDate());
         return true;
     }
+
+    /**
+     * Modifies an existing appointment to a new time slot.
+     * Validates that the appointment is not in the past, then cancels the old appointment
+     * and books a new one with the same description and max capacity.
+     * US4.1: Modify Appointment
+     */
+    public Appointment modifyAppointment(Appointment oldAppt, TimeSlot newSlot) {
+        if (oldAppt.getTimeSlot().getDate().isBefore(LocalDate.now())) {
+            throw new ValidationException("Cannot modify a past appointment");
+        }
+        cancelAppointment(oldAppt);
+        return bookAppointment(newSlot, oldAppt.getDescription(), oldAppt.getMaxCapacity());
+    }
     // UTILITY
     public List<Appointment> getAllAppointments() {
         return appointments;

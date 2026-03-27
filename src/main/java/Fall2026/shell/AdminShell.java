@@ -1,6 +1,7 @@
 package Fall2026.shell;
 
 
+import Fall2026.application.services.AdminAppointmentService;
 import Fall2026.application.services.AuthService;
 import Fall2026.application.services.AppointmentService;
 import Fall2026.application.services.Session;
@@ -23,6 +24,7 @@ public class AdminShell {
     private final AuthService authService;
     private final AppointmentService appointmentService;
     private final AdminFileManager adminFileManager;
+    private final AdminAppointmentService adminAppointmentService;
 
     public AdminShell(Scanner scanner, Session session, AuthService authService,
                       AppointmentService appointmentService, AdminFileManager adminFileManager) {
@@ -31,6 +33,7 @@ public class AdminShell {
         this.authService = authService;
         this.appointmentService = appointmentService;
         this.adminFileManager = adminFileManager; // ← same instance as AuthService uses
+        this.adminAppointmentService = new AdminAppointmentService(appointmentService, authService);
     }
 
     public void run() {
@@ -52,6 +55,14 @@ public class AdminShell {
 
                 case "reserve list":
                     handleReserveList();
+                    break;
+
+                case "reserve cancel":
+                    handleReserveCancel();
+                    break;
+
+                case "reserve modify":
+                    handleReserveModify();
                     break;
 
                 case "admin add":
@@ -93,8 +104,10 @@ public class AdminShell {
         System.out.println("  ─────────────────────────────────────────────");
         System.out.println("  help             Show this help message");
         System.out.println("  schedule list    View all available time slots");
-        System.out.println("  reserve list     View all reservations");
         System.out.println("  schedule add     Add a new time slot");
+        System.out.println("  reserve list     View all reservations");
+        System.out.println("  reserve cancel   Cancel a reservation");
+        System.out.println("  reserve modify   Modify a reservation");
         System.out.println("  admin add        Add a new admin account");
         System.out.println("  signout          Sign out of your account");
         System.out.println("  exit             Exit the system");
@@ -206,5 +219,145 @@ public class AdminShell {
         System.out.println();
     }
 
+    private void handleReserveCancel() {
+        List<Appointment> appointments = appointmentService.getAllAppointments();
+
+        if (appointments.isEmpty()) {
+            System.out.println("  No reservations to cancel.");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("  All reservations:");
+        System.out.println("  ─────────────────────────────────────────────");
+        for (int i = 0; i < appointments.size(); i++) {
+            Appointment appt = appointments.get(i);
+            TimeSlot slot = appt.getTimeSlot();
+            System.out.println("  [" + (i + 1) + "] "
+                    + slot.getDate() + "  "
+                    + slot.getStartTime() + " → " + slot.getEndTime()
+                    + "  │  Bookings: " + appt.getCurrentBookings() + "/" + appt.getMaxCapacity());
+        }
+        System.out.println("  ─────────────────────────────────────────────");
+
+        System.out.print("  Select reservation number to cancel: ");
+        String choice = scanner.nextLine().trim();
+
+        int index;
+        try {
+            index = Integer.parseInt(choice) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid input. Enter a number.");
+            return;
+        }
+
+        if (index < 0 || index >= appointments.size()) {
+            System.out.println("  ✗ Invalid reservation number.");
+            return;
+        }
+
+        Appointment toCancel = appointments.get(index);
+
+        try {
+            adminAppointmentService.adminCancel(toCancel);
+            System.out.println("  ✓ Reservation cancelled successfully.");
+        } catch (ValidationException e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+        System.out.println();
+    }
+
+    private void handleReserveModify() {
+        List<Appointment> appointments = appointmentService.getAllAppointments();
+
+        if (appointments.isEmpty()) {
+            System.out.println("  No reservations to modify.");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("  All reservations:");
+        System.out.println("  ─────────────────────────────────────────────");
+        for (int i = 0; i < appointments.size(); i++) {
+            Appointment appt = appointments.get(i);
+            TimeSlot slot = appt.getTimeSlot();
+            System.out.println("  [" + (i + 1) + "] "
+                    + slot.getDate() + "  "
+                    + slot.getStartTime() + " → " + slot.getEndTime()
+                    + "  │  Bookings: " + appt.getCurrentBookings() + "/" + appt.getMaxCapacity());
+        }
+        System.out.println("  ─────────────────────────────────────────────");
+
+        System.out.print("  Select reservation number to modify: ");
+        String choice = scanner.nextLine().trim();
+
+        int index;
+        try {
+            index = Integer.parseInt(choice) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid input. Enter a number.");
+            return;
+        }
+
+        if (index < 0 || index >= appointments.size()) {
+            System.out.println("  ✗ Invalid reservation number.");
+            return;
+        }
+
+        Appointment toModify = appointments.get(index);
+
+        System.out.print("  Enter new date (YYYY-MM-DD): ");
+        String dateInput = scanner.nextLine().trim();
+
+        LocalDate newDate;
+        try {
+            newDate = LocalDate.parse(dateInput);
+        } catch (DateTimeParseException e) {
+            System.out.println("  ✗ Invalid date format. Use YYYY-MM-DD (e.g. 2026-04-01).");
+            return;
+        }
+
+        List<TimeSlot> slots = appointmentService.getSlotsForDay(newDate);
+
+        if (slots.isEmpty()) {
+            System.out.println("  No available slots for " + newDate + ".");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("  Available slots for " + newDate + ":");
+        for (int i = 0; i < slots.size(); i++) {
+            TimeSlot slot = slots.get(i);
+            System.out.println("  [" + (i + 1) + "] " + slot.getStartTime() + " → " + slot.getEndTime());
+        }
+
+        System.out.print("  Select new slot number: ");
+        String slotChoice = scanner.nextLine().trim();
+
+        int slotIndex;
+        try {
+            slotIndex = Integer.parseInt(slotChoice) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid input. Enter a number.");
+            return;
+        }
+
+        if (slotIndex < 0 || slotIndex >= slots.size()) {
+            System.out.println("  ✗ Invalid slot number.");
+            return;
+        }
+
+        TimeSlot newSlot = slots.get(slotIndex);
+
+        try {
+            adminAppointmentService.adminModify(toModify, newSlot);
+            System.out.println("  ✓ Reservation modified: "
+                    + newSlot.getDate() + "  "
+                    + newSlot.getStartTime() + " → " + newSlot.getEndTime());
+        } catch (ValidationException e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+        System.out.println();
+    }
 
 }

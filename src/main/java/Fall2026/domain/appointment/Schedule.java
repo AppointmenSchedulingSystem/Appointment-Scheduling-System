@@ -14,6 +14,11 @@ public class Schedule {
     public void addSlot(TimeSlot slot) {
         allSlots.add(slot);
     }
+
+    public List<TimeSlot> getAllSlots() {
+        return new ArrayList<>(allSlots);
+    }
+
 //    public List<TimeSlot> getAvailableSlots() {
 //        return allSlots.stream()
 //                .filter(s -> !s.isBooked())
@@ -27,7 +32,6 @@ public List<TimeSlot> getAvailableSlotsForDay(LocalDate date) {
 
     public List<LocalDate> getAvailableDays() {
         return allSlots.stream()
-                .filter(s -> !s.isBooked())
                 .map(TimeSlot::getDate)
                 .distinct()
                 .sorted()
