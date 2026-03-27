@@ -72,39 +72,32 @@ public class GuestShell {
     }
 
     private void handleSignin() {
-        System.out.print("  Role (admin/user): ");
-        String role = scanner.nextLine().trim().toLowerCase();
-
-        if (!role.equals("admin") && !role.equals("user")) {
-            System.out.println("  Unknown role '" + role + "'. Type 'admin' or 'user'.");
-            return;
-        }
-
         System.out.print("  Username: ");
         String username = scanner.nextLine().trim();
 
         System.out.print("  Password: ");
         String password = scanner.nextLine().trim();
 
-        // ← moved here so both admin and user share the same instance
-      //  Schedule schedule = new Schedule();
-        //AppointmentService appointmentService = new AppointmentService(schedule);
-
         try {
-            if (role.equals("admin")) {
-                authService.loginAdmin(username, password);
-                Admin admin = (Admin) session.getCurrentAccount();
+            // Try login (system decides role internally)
+            authService.login(username, password);
+
+            Object account = session.getCurrentAccount();
+
+            if (account instanceof Admin) {
+                Admin admin = (Admin) account;
                 System.out.println("  ✓ Welcome back, " + admin.getUsername() + "!");
                 System.out.println();
+
                 AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService, adminFileManager);
                 adminShell.run();
 
-            } else {
-                authService.loginUser(username, password);
-                User user = (User) session.getCurrentAccount();
+            } else if (account instanceof User) {
+                User user = (User) account;
                 System.out.println("  ✓ Welcome back, " + user.getUsername() + "!");
                 System.out.println();
-                UserShell userShell = new UserShell(scanner, session, authService, appointmentService); // ← no change needed
+
+                UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
                 userShell.run();
             }
 
