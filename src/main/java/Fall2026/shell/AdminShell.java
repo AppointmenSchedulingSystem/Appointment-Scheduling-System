@@ -29,7 +29,7 @@ public class AdminShell {
     private final AdminAppointmentService adminAppointmentService;
 
     public AdminShell(Scanner scanner, Session session, AuthService authService,
-                      AppointmentService appointmentService, AdminFileManager adminFileManager) {
+                      AppointmentService appointmentService, AdminFileManager adminFileManager,ScheduleFileManager scheduleFileManager) {
         this.scanner = scanner;
         this.session = session;
         this.authService = authService;

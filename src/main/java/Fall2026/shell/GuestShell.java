@@ -11,6 +11,7 @@ import Fall2026.domain.appointment.Schedule;
 import Fall2026.domain.exceptions.AuthorizationException;
 import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.infrastructure.persistence.AdminFileManager;
+import Fall2026.infrastructure.persistence.ScheduleFileManager;
 
 import java.util.Scanner;
 
@@ -21,14 +22,16 @@ public class GuestShell {
     private final AuthService authService;
     private final AdminFileManager adminFileManager;
     private final AppointmentService appointmentService;
+    private final ScheduleFileManager scheduleFileManager;
 
     public GuestShell(Scanner scanner, Session session, AuthService authService,
-                      AppointmentService appointmentService, AdminFileManager adminFileManager) {
+                      AppointmentService appointmentService, AdminFileManager adminFileManager, ScheduleFileManager scheduleFileManager) {
         this.scanner = scanner;
         this.session = session;
         this.authService = authService;
         this.appointmentService = appointmentService;
         this.adminFileManager = adminFileManager; // ← store it
+        this.scheduleFileManager = scheduleFileManager;
     }
 
     public void run() {
@@ -89,7 +92,7 @@ public class GuestShell {
                 System.out.println("  ✓ Welcome back, " + admin.getUsername() + "!");
                 System.out.println();
 
-                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService, adminFileManager);
+                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService, adminFileManager,scheduleFileManager);
                 adminShell.run();
 
             } else if (account instanceof User) {
