@@ -15,6 +15,7 @@ import Fall2026.infrastructure.persistence.ScheduleFileManager;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -25,7 +26,7 @@ public class AdminShell {
     private final AuthService authService;
     private final AppointmentService appointmentService;
     private final AdminFileManager adminFileManager;
-    private final ScheduleFileManager scheduleFileManager;
+    private final ScheduleFileManager scheduleFileManager = null;
     private final AdminAppointmentService adminAppointmentService;
 
     public AdminShell(Scanner scanner, Session session, AuthService authService,
@@ -35,7 +36,7 @@ public class AdminShell {
         this.authService = authService;
         this.appointmentService = appointmentService;
         this.adminFileManager = adminFileManager;
-        this.scheduleFileManager = scheduleFileManager;
+       // this.scheduleFileManager = scheduleFileManager;
         this.adminAppointmentService = new AdminAppointmentService(appointmentService, authService);
     }
 
@@ -393,7 +394,7 @@ public class AdminShell {
                 appointmentService.getSlotsForDay(LocalDate.now());
 
         // Get all slots from the schedule
-        List<TimeSlot> slots = new java.util.ArrayList<>();
+        List<TimeSlot> slots = new ArrayList<>();
         for (LocalDate date : appointmentService.getAvailableDays()) {
             slots.addAll(appointmentService.getSlotsForDay(date));
         }

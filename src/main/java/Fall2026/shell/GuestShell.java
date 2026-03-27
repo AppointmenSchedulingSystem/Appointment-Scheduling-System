@@ -7,7 +7,6 @@ import Fall2026.application.services.AppointmentService;
 import Fall2026.application.services.Session;
 import Fall2026.domain.account.Admin;
 import Fall2026.domain.account.User;
-import Fall2026.domain.appointment.Schedule;
 import Fall2026.domain.exceptions.AuthorizationException;
 import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.infrastructure.persistence.AdminFileManager;
@@ -48,6 +47,10 @@ public class GuestShell {
                     handleSignin();
                     break;
 
+                case "signup":
+                    handleSignup();
+                    break;
+
                 case "exit":
                     System.out.println();
                     System.out.println("  Goodbye!");
@@ -69,11 +72,27 @@ public class GuestShell {
         System.out.println("  ─────────────────────────────────────");
         System.out.println("  help       Show this help message");
         System.out.println("  signin     Sign in as admin or user");
+        System.out.println("  signup     Create a new user account");
         System.out.println("  exit       Exit the system");
         System.out.println("  ─────────────────────────────────────");
         System.out.println();
     }
 
+
+    private void handleSignup() {
+        System.out.print("  New Username: ");
+        String username = scanner.nextLine().trim();
+
+        System.out.print("  New Password: ");
+        String password = scanner.nextLine().trim();
+
+        try {
+            authService.registerUser(username, password);
+            System.out.println("  ✓ User created successfully!");
+        } catch (ValidationException e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+    }
     private void handleSignin() {
         System.out.print("  Username: ");
         String username = scanner.nextLine().trim();

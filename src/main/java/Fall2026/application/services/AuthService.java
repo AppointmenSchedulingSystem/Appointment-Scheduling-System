@@ -8,6 +8,8 @@ import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.infrastructure.persistence.AdminFileManager;
 import Fall2026.infrastructure.persistence.UserFileManager;
 
+import java.io.*;
+
 //user authentication and authorization logic here, such as login, logout, and permission checks.
 public class AuthService {
     private final Session session;
@@ -90,4 +92,39 @@ public class AuthService {
         throw new AuthorizationException("Invalid username or password.");
     }
 
+
+    public void registerUser(String username, String password) {
+        if (username.isEmpty() || password.isEmpty()) {
+            throw new ValidationException("Username and password cannot be empty.");
+        }
+
+        // check if user already exists
+        if (userExists(username)) {
+            throw new ValidationException("Username already exists.");
+        }
+
+        saveUserToFile(username, password);
+    }
+
+    private boolean userExists(String username) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                String[] parts = line.split(",");
+                if (parts[0].equals(username)) {
+                    return true;
+                }
+            }
+        } catch (IOException ignored) {}
+        return false;
+    }
+
+    private void saveUserToFile(String username, String password) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("users.txt", true))) {
+            writer.write(username + "," + password);
+            writer.newLine();
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving user.");
+        }
+    }
 }
