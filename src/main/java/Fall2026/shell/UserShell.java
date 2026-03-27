@@ -43,6 +43,10 @@ public class UserShell {
                     handleViewSlots();
                     break;
 
+                case "slots all":
+                    handleViewAllSlots();
+                    break;
+
                 case "book":
                     handleBook();
                     break;
@@ -83,7 +87,8 @@ public class UserShell {
         System.out.println("  Available commands:");
         System.out.println("  ─────────────────────────────────────────────");
         System.out.println("  help       Show this help message");
-        System.out.println("  slots      View available appointment slots");
+        System.out.println("  slots      View available appointment slots (by date)");
+        System.out.println("  slots all  View ALL available appointment slots");
         System.out.println("  book       Book an appointment slot");
         System.out.println("  modify     Modify an existing appointment");
         System.out.println("  cancel     Cancel an existing appointment");
@@ -257,7 +262,8 @@ public class UserShell {
             TimeSlot slot = appt.getTimeSlot();
             System.out.println("  [" + (i + 1) + "] "
                     + slot.getDate() + "  "
-                    + slot.getStartTime() + " → " + slot.getEndTime());
+                    + slot.getStartTime() + " → " + slot.getEndTime()
+                    + "  │  " + appt.getDescription());
         }
         System.out.println("  ─────────────────────────────────────────────");
 
@@ -322,14 +328,75 @@ public class UserShell {
 
         TimeSlot newSlot = slots.get(slotIndex);
 
+        System.out.print("  Enter new description (or press Enter to keep current): ");
+        String newDescription = scanner.nextLine().trim();
+        if (newDescription.isEmpty()) {
+            newDescription = toModify.getDescription();
+        }
+
         try {
-            appointmentService.modifyAppointment(toModify, newSlot);
+            appointmentService.modifyAppointmentFull(toModify, newSlot, newDescription);
             System.out.println("  ✓ Appointment modified: "
                     + newSlot.getDate() + "  "
-                    + newSlot.getStartTime() + " → " + newSlot.getEndTime());
+                    + newSlot.getStartTime() + " → " + newSlot.getEndTime()
+                    + "  │  " + newDescription);
         } catch (ValidationException e) {
             System.out.println("  ✗ " + e.getMessage());
         }
         System.out.println();
+    }
+
+    private void handleViewAllSlots() {
+        List<LocalDate> availableDays = appointmentService.getAvailableDays();
+
+        System.out.println();
+        System.out.println("  ALL AVAILABLE APPOINTMENT SLOTS");
+        System.out.println("  ═════════════════════════════════════════════");
+
+        if (availableDays.isEmpty()) {
+            System.out.println("  No available slots in the system.");
+            System.out.println("  ─────────────────────────────────────────────");
+            System.out.println();
+            return;
+        }
+
+        int slotNumber = 1;
+        for (LocalDate date : availableDays) {
+            List<TimeSlot> slots = appointmentService.getSlotsForDay(date);
+
+            System.out.println();
+            System.out.println("  📅 " + date);
+            System.out.println("  ─────────────────────────────────────────────");
+
+            for (TimeSlot slot : slots) {
+                Appointment appt = findAppointmentBySlot(slot);
+                if (appt == null) {
+                    // No bookings yet - fully available
+                    System.out.println("  [" + slotNumber + "] " + slot.getStartTime() + " → " + slot.getEndTime()
+                            + "  │  AVAILABLE");
+                } else if (!appt.isFull()) {
+                    // Partially booked
+                    System.out.println("  [" + slotNumber + "] " + slot.getStartTime() + " → " + slot.getEndTime()
+                            + "  │  " + (appt.getMaxCapacity() - appt.getCurrentBookings()) + "/" + appt.getMaxCapacity()
+                            + " spots available");
+                }
+                // Fully booked slots are not displayed (per US1.3)
+                slotNumber++;
+            }
+        }
+
+        System.out.println();
+        System.out.println("  ═════════════════════════════════════════════");
+        System.out.println("  Legend: [#] time  │  availability status");
+        System.out.println();
+    }
+
+    private Appointment findAppointmentBySlot(TimeSlot slot) {
+        for (Appointment a : appointmentService.getAllAppointments()) {
+            if (a.getTimeSlot().equals(slot)) {
+                return a;
+            }
+        }
+        return null;
     }
 }

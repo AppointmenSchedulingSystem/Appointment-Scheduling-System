@@ -15,6 +15,13 @@ public class Schedule {
         allSlots.add(slot);
     }
 
+    /**
+     * Removes a time slot from the schedule
+     */
+    public void removeSlot(TimeSlot slot) {
+        allSlots.remove(slot);
+    }
+
     public List<TimeSlot> getAllSlots() {
         return new ArrayList<>(allSlots);
     }

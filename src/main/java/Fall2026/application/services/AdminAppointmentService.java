@@ -45,5 +45,35 @@ public class AdminAppointmentService {
         authService.requireAdmin();
         return appointmentService.modifyAppointment(oldAppt, newSlot);
     }
+
+    /**
+     * Modifies an appointment with new time slot and description.
+     * Admin can change all appointment properties.
+     * US4.2: Admin Appointment Management (Enhanced)
+     *
+     * @param oldAppt the appointment to modify
+     * @param newSlot the new time slot (date and time)
+     * @param newDescription the new description/reason
+     * @return the modified appointment
+     * @throws AuthorizationException if user is not an admin
+     * @throws ValidationException if appointment cannot be modified
+     */
+    public Appointment adminModifyFull(Appointment oldAppt, TimeSlot newSlot, String newDescription) {
+        authService.requireAdmin();
+        return appointmentService.modifyAppointmentFull(oldAppt, newSlot, newDescription);
+    }
+
+    /**
+     * Removes a time slot (and any associated appointment) from the schedule.
+     * Admin can remove/delete time slots.
+     * US4.2: Admin Schedule Management
+     *
+     * @param slot the time slot to remove
+     * @throws AuthorizationException if user is not an admin
+     */
+    public void adminRemoveSlot(TimeSlot slot) {
+        authService.requireAdmin();
+        appointmentService.removeSlot(slot);
+    }
 }
 

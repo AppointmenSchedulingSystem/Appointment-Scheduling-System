@@ -47,7 +47,7 @@ public class AppointmentService {
         return available;
     }
 
-        //        the core action
+    //        the core action
 
     public Appointment bookAppointment(TimeSlot slot, String description, int maxCapacity) {
 
@@ -94,7 +94,7 @@ public class AppointmentService {
             appointments.remove(appointment);
         }
 
-      //  System.out.println("Cancelled booking on " + appointment.getTimeSlot().getDate());
+        //  System.out.println("Cancelled booking on " + appointment.getTimeSlot().getDate());
         return true;
     }
 
@@ -111,6 +111,27 @@ public class AppointmentService {
         cancelAppointment(oldAppt);
         return bookAppointment(newSlot, oldAppt.getDescription(), oldAppt.getMaxCapacity());
     }
+
+    /**
+     * Modifies an existing appointment with new time slot and description.
+     * US4.1: Modify Appointment (Enhanced)
+     * Allows users to change the date, time, and description all at once.
+     *
+     * @param oldAppt        the appointment to modify
+     * @param newSlot        the new time slot (date and time)
+     * @param newDescription the new description
+     * @return the modified appointment
+     * @throws ValidationException if appointment is in the past or invalid slot
+     */
+    public Appointment modifyAppointmentFull(Appointment oldAppt, TimeSlot newSlot, String newDescription) {
+        if (oldAppt.getTimeSlot().getDate().isBefore(LocalDate.now())) {
+            throw new ValidationException("Cannot modify a past appointment");
+        }
+        if (newDescription == null) newDescription = "";
+        cancelAppointment(oldAppt);
+        return bookAppointment(newSlot, newDescription, oldAppt.getMaxCapacity());
+    }
+
     // UTILITY
     public List<Appointment> getAllAppointments() {
         return appointments;
@@ -124,8 +145,24 @@ public class AppointmentService {
         }
         return null;
     }
+
     public void addSlot(TimeSlot slot) {
         schedule.addSlot(slot);
     }
 
+    /**
+     * Removes a time slot from the schedule.
+     * US4.2: Admin can remove time slots
+     *
+     * @param slot the time slot to remove
+     */
+    public void removeSlot(TimeSlot slot) {
+        schedule.removeSlot(slot);
+
+        // Also remove any appointment associated with this slot
+        Appointment apptToRemove = findAppointmentBySlot(slot);
+        if (apptToRemove != null) {
+            appointments.remove(apptToRemove);
+        }
+    }
 }

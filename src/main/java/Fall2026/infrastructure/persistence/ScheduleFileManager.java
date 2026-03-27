@@ -33,12 +33,12 @@ public class ScheduleFileManager {
         for (String line : lines) {
             try {
                 String[] parts = line.split(",");
-                // expected format: date,startTime,endTime
+                // expected format: date,startTime,endTime (times include seconds HH:MM:SS)
                 if (parts.length == 3) {
                     LocalDate date = LocalDate.parse(parts[0].trim());
-                    LocalTime startTime = LocalTime.parse(parts[1].trim());
-                    LocalTime endTime = LocalTime.parse(parts[2].trim());
-                    
+                    LocalTime startTime = LocalTime.parse(parts[1].trim()); // Parses HH:MM:SS format
+                    LocalTime endTime = LocalTime.parse(parts[2].trim());   // Parses HH:MM:SS format
+
                     TimeSlot slot = new TimeSlot(date, startTime, endTime);
                     schedule.addSlot(slot);
                 } else {
@@ -53,7 +53,7 @@ public class ScheduleFileManager {
     }
     
     /**
-     * Save all time slots to Slots.txt
+     * Save all time slots to Slots.txt in format: date,startTime(HH:MM:SS),endTime(HH:MM:SS)
      */
     private void saveSlotsToFile() {
         List<String> lines = new ArrayList<>();

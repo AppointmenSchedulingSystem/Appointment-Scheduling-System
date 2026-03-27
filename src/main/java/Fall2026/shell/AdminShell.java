@@ -87,6 +87,10 @@ public class AdminShell {
                     handleScheduleAdd();
                     break;
 
+                case "schedule modify":
+                    handleScheduleModify();
+                    break;
+
                 case "":
                     break;
 
@@ -105,9 +109,10 @@ public class AdminShell {
         System.out.println("  help             Show this help message");
         System.out.println("  schedule list    View all available time slots");
         System.out.println("  schedule add     Add a new time slot");
+        System.out.println("  schedule modify  Modify a time slot (date/time)");
         System.out.println("  reserve list     View all reservations");
         System.out.println("  reserve cancel   Cancel a reservation");
-        System.out.println("  reserve modify   Modify a reservation");
+        System.out.println("  reserve modify   Modify a reservation (date/time/description)");
         System.out.println("  admin add        Add a new admin account");
         System.out.println("  signout          Sign out of your account");
         System.out.println("  exit             Exit the system");
@@ -284,6 +289,7 @@ public class AdminShell {
             System.out.println("  [" + (i + 1) + "] "
                     + slot.getDate() + "  "
                     + slot.getStartTime() + " → " + slot.getEndTime()
+                    + "  │  " + appt.getDescription()
                     + "  │  Bookings: " + appt.getCurrentBookings() + "/" + appt.getMaxCapacity());
         }
         System.out.println("  ─────────────────────────────────────────────");
@@ -349,11 +355,132 @@ public class AdminShell {
 
         TimeSlot newSlot = slots.get(slotIndex);
 
+        System.out.print("  Enter new description (or press Enter to keep current): ");
+        String newDescription = scanner.nextLine().trim();
+        if (newDescription.isEmpty()) {
+            newDescription = toModify.getDescription();
+        }
+
         try {
-            adminAppointmentService.adminModify(toModify, newSlot);
+            adminAppointmentService.adminModifyFull(toModify, newSlot, newDescription);
             System.out.println("  ✓ Reservation modified: "
                     + newSlot.getDate() + "  "
-                    + newSlot.getStartTime() + " → " + newSlot.getEndTime());
+                    + newSlot.getStartTime() + " → " + newSlot.getEndTime()
+                    + "  │  " + newDescription);
+        } catch (ValidationException e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+        System.out.println();
+    }
+
+    private void handleScheduleModify() {
+        List<TimeSlot> allSlots = appointmentService.getAllAppointments().isEmpty() ?
+                appointmentService.getSlotsForDay(LocalDate.now()) :
+                appointmentService.getSlotsForDay(LocalDate.now());
+
+        // Get all slots from the schedule
+        List<TimeSlot> slots = new java.util.ArrayList<>();
+        for (LocalDate date : appointmentService.getAvailableDays()) {
+            slots.addAll(appointmentService.getSlotsForDay(date));
+        }
+
+        if (slots.isEmpty()) {
+            System.out.println("  No time slots to modify.");
+            return;
+        }
+
+        System.out.println();
+        System.out.println("  All time slots:");
+        System.out.println("  ─────────────────────────────────────────────");
+        for (int i = 0; i < slots.size(); i++) {
+            TimeSlot slot = slots.get(i);
+            System.out.println("  [" + (i + 1) + "] "
+                    + slot.getDate() + "  "
+                    + slot.getStartTime() + " → " + slot.getEndTime());
+        }
+        System.out.println("  ─────────────────────────────────────────────");
+
+        System.out.print("  Select time slot number to modify: ");
+        String choice = scanner.nextLine().trim();
+
+        int index;
+        try {
+            index = Integer.parseInt(choice) - 1;
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid input. Enter a number.");
+            return;
+        }
+
+        if (index < 0 || index >= slots.size()) {
+            System.out.println("  ✗ Invalid slot number.");
+            return;
+        }
+
+        TimeSlot oldSlot = slots.get(index);
+
+        System.out.print("  Enter new date (YYYY-MM-DD): ");
+        String dateInput = scanner.nextLine().trim();
+
+        LocalDate newDate;
+        try {
+            newDate = LocalDate.parse(dateInput);
+        } catch (DateTimeParseException e) {
+            System.out.println("  ✗ Invalid date format. Use YYYY-MM-DD (e.g. 2026-04-01).");
+            return;
+        }
+
+        System.out.print("  Enter new start time (HH:MM:SS): ");
+        String startInput = scanner.nextLine().trim();
+
+        LocalTime newStart;
+        try {
+            if (startInput.contains(":")) {
+                String[] parts = startInput.split(":");
+                if (parts.length == 2) {
+                    newStart = LocalTime.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+                } else {
+                    newStart = LocalTime.parse(startInput);
+                }
+            } else {
+                newStart = LocalTime.parse(startInput);
+            }
+        } catch (Exception e) {
+            System.out.println("  ✗ Invalid time format. Use HH:MM or HH:MM:SS.");
+            return;
+        }
+
+        System.out.print("  Enter new end time (HH:MM:SS): ");
+        String endInput = scanner.nextLine().trim();
+
+        LocalTime newEnd;
+        try {
+            if (endInput.contains(":")) {
+                String[] parts = endInput.split(":");
+                if (parts.length == 2) {
+                    newEnd = LocalTime.of(Integer.parseInt(parts[0]), Integer.parseInt(parts[1]));
+                } else {
+                    newEnd = LocalTime.parse(endInput);
+                }
+            } else {
+                newEnd = LocalTime.parse(endInput);
+            }
+        } catch (Exception e) {
+            System.out.println("  ✗ Invalid time format. Use HH:MM or HH:MM:SS.");
+            return;
+        }
+
+        if (!newEnd.isAfter(newStart)) {
+            System.out.println("  ✗ End time must be after start time.");
+            return;
+        }
+
+        try {
+            TimeSlot newSlot = new TimeSlot(newDate, newStart, newEnd);
+            adminAppointmentService.adminRemoveSlot(oldSlot);
+            appointmentService.addSlot(newSlot);
+            System.out.println("  ✓ Time slot modified: "
+                    + newDate + "  "
+                    + newStart + " → " + newEnd);
         } catch (ValidationException e) {
             System.out.println("  ✗ " + e.getMessage());
         }
@@ -361,3 +488,4 @@ public class AdminShell {
     }
 
 }
+
