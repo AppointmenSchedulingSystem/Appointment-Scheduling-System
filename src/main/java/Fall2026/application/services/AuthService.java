@@ -77,17 +77,5 @@ public class AuthService {
         }
     }
 
-    public void login(String username, String password) {
-        try {
-            loginAdmin(username, password);
-            return;
-        } catch (Exception ignored) {}
 
-        try {
-            loginUser(username, password);
-            return;
-        } catch (Exception ignored) {}
-
-        throw new AuthorizationException("Invalid username or password.");
-    }
 }

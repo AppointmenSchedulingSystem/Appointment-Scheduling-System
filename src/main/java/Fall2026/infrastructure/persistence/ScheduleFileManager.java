@@ -19,6 +19,16 @@ public class ScheduleFileManager {
         this.schedule = new Schedule();
         loadSlotsFromFile();
     }
+
+    /**
+     * Constructor that accepts an existing Schedule object and loads slots into it.
+     * Used by App.java to load slots into the shared Schedule instance.
+     */
+    public ScheduleFileManager(Schedule existingSchedule) {
+        this.storage = new CredentialStorage();
+        this.schedule = existingSchedule;
+        loadSlotsFromFile();
+    }
     
     /**
      * Load time slots from Slots.txt on startup
@@ -33,12 +43,12 @@ public class ScheduleFileManager {
         for (String line : lines) {
             try {
                 String[] parts = line.split(",");
-                // expected format: date,startTime,endTime
+                // expected format: date,startTime,endTime (times include seconds HH:MM:SS)
                 if (parts.length == 3) {
                     LocalDate date = LocalDate.parse(parts[0].trim());
-                    LocalTime startTime = LocalTime.parse(parts[1].trim());
-                    LocalTime endTime = LocalTime.parse(parts[2].trim());
-                    
+                    LocalTime startTime = LocalTime.parse(parts[1].trim()); // Parses HH:MM:SS format
+                    LocalTime endTime = LocalTime.parse(parts[2].trim());   // Parses HH:MM:SS format
+
                     TimeSlot slot = new TimeSlot(date, startTime, endTime);
                     schedule.addSlot(slot);
                 } else {
@@ -53,9 +63,9 @@ public class ScheduleFileManager {
     }
     
     /**
-     * Save all time slots to Slots.txt
+     * Save all time slots to Slots.txt in format: date,startTime(HH:MM:SS),endTime(HH:MM:SS)
      */
-    private void saveSlotsToFile() {
+    public void saveSlotsToFile() {
         List<String> lines = new ArrayList<>();
         for (TimeSlot slot : schedule.getAllSlots()) {
             String line = slot.getDate() + "," + slot.getStartTime() + "," + slot.getEndTime();
@@ -63,7 +73,7 @@ public class ScheduleFileManager {
         }
         
         if (storage.WriteToFile(SLOTS_FILE, lines)) {
-            System.out.println("Time slots saved to file successfully.");
+            // File saved successfully (don't print - let caller handle messages)
         } else {
             System.out.println("Failed to save time slots to file.");
         }
@@ -89,12 +99,55 @@ public class ScheduleFileManager {
     }
     
     /**
+     * Check if a time slot already exists (duplicate detection)
+     * @param slot the time slot to check
+     * @return true if slot exists, false otherwise
+     */
+    public boolean slotExists(TimeSlot slot) {
+        for (TimeSlot existing : schedule.getAllSlots()) {
+            if (existing.equals(slot)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Check if a time slot conflicts with existing slots (overlapping times on same date)
+     * Detects:
+     * - Exact duplicates (same start and end time)
+     * - Overlapping slots (new slot starts before existing slot ends)
+     * - Touching starts (slots that start at same time)
+     * 
+     * @param slot the time slot to check
+     * @return true if a conflict exists, false otherwise
+     */
+    public boolean hasTimeConflict(TimeSlot slot) {
+        for (TimeSlot existing : schedule.getAllSlots()) {
+            // Only check slots on the same date
+            if (existing.getDate().equals(slot.getDate())) {
+                // Check for time range overlap:
+                // Conflict exists if: newSlot.start < existing.end AND newSlot.end > existing.start
+                if (slot.getStartTime().isBefore(existing.getEndTime()) && 
+                    slot.getEndTime().isAfter(existing.getStartTime())) {
+                    return true;
+                }
+                // Also check for exact same start time (even if end times differ)
+                if (slot.getStartTime().equals(existing.getStartTime())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Get the schedule object
      */
     public Schedule getSchedule() {
         return schedule;
     }
-    
+
     /**
      * Get all time slots
      */
