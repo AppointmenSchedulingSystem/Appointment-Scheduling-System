@@ -10,6 +10,7 @@ import Fall2026.domain.appointment.Appointment;
 import Fall2026.domain.appointment.TimeSlot;
 import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.infrastructure.persistence.AdminFileManager;
+import Fall2026.infrastructure.persistence.ScheduleFileManager;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
@@ -24,15 +25,18 @@ public class AdminShell {
     private final AuthService authService;
     private final AppointmentService appointmentService;
     private final AdminFileManager adminFileManager;
+    private final ScheduleFileManager scheduleFileManager;
     private final AdminAppointmentService adminAppointmentService;
 
     public AdminShell(Scanner scanner, Session session, AuthService authService,
-                      AppointmentService appointmentService, AdminFileManager adminFileManager) {
+                      AppointmentService appointmentService, AdminFileManager adminFileManager,
+                      ScheduleFileManager scheduleFileManager) {
         this.scanner = scanner;
         this.session = session;
         this.authService = authService;
         this.appointmentService = appointmentService;
-        this.adminFileManager = adminFileManager; // ← same instance as AuthService uses
+        this.adminFileManager = adminFileManager;
+        this.scheduleFileManager = scheduleFileManager;
         this.adminAppointmentService = new AdminAppointmentService(appointmentService, authService);
     }
 
@@ -215,8 +219,19 @@ public class AdminShell {
             }
 
             TimeSlot slot = new TimeSlot(date, start, end);
+            
+            // Check for conflict (overlap or same start time)
+            if (scheduleFileManager.hasTimeConflict(slot)) {
+                System.out.println("  ✗ ERROR: Time slot conflict detected!");
+                System.out.println("  ✗ This time overlaps with an existing time slot on " + date + ".");
+                System.out.println("  Cannot add conflicting time slot.");
+                return;
+            }
+
             appointmentService.addSlot(slot);
+            scheduleFileManager.saveSlotsToFile();
             System.out.println("  ✓ Slot added: " + date + "  " + start + " → " + end);
+            System.out.println("  ✓ Saved to Slots.txt");
 
         } catch (DateTimeParseException e) {
             System.out.println("  ✗ Invalid format. Use YYYY-MM-DD and HH:MM.");
@@ -476,11 +491,31 @@ public class AdminShell {
 
         try {
             TimeSlot newSlot = new TimeSlot(newDate, newStart, newEnd);
+            
+            // Check for conflict with existing slots (excluding the old slot being modified)
+            for (TimeSlot existing : scheduleFileManager.getAllSlots()) {
+                if (!existing.equals(oldSlot)) {  // Don't compare with the slot being modified
+                    // Check if on same date
+                    if (existing.getDate().equals(newDate)) {
+                        // Check for time range overlap or same start time
+                        if ((newStart.isBefore(existing.getEndTime()) && newEnd.isAfter(existing.getStartTime())) ||
+                            newStart.equals(existing.getStartTime())) {
+                            System.out.println("  ✗ ERROR: Time slot conflict detected!");
+                            System.out.println("  ✗ Slot overlaps with existing slot: " + existing.getStartTime() + " → " + existing.getEndTime());
+                            System.out.println("  Cannot modify to conflicting time slot.");
+                            return;
+                        }
+                    }
+                }
+            }
+            
             adminAppointmentService.adminRemoveSlot(oldSlot);
             appointmentService.addSlot(newSlot);
+            scheduleFileManager.saveSlotsToFile();
             System.out.println("  ✓ Time slot modified: "
                     + newDate + "  "
                     + newStart + " → " + newEnd);
+            System.out.println("  ✓ Saved to Slots.txt");
         } catch (ValidationException e) {
             System.out.println("  ✗ " + e.getMessage());
         }
