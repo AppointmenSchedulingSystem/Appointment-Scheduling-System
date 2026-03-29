@@ -15,7 +15,7 @@ public class AppointmentService {
     private List<Appointment> appointments;
     private static final int MAX_DURATION_MINUTES = 120;
 
-    public AppointmentService(Schedule schedule) {
+    public AppointmentService() {
         this.schedule = schedule;
         this.appointments = new ArrayList<>();
     }

@@ -2,6 +2,7 @@ package Fall2026.application.services;
 
 
 import Fall2026.domain.account.Admin;
+import Fall2026.domain.account.Role;
 import Fall2026.domain.account.User;
 import Fall2026.domain.exceptions.AuthorizationException;
 import Fall2026.domain.exceptions.ValidationException;
@@ -36,15 +37,23 @@ public class AuthService {
         return admin;
     }
     // Add this when you have user persistence
-    public User loginUser(String username, String password) {
-        validateLoginInput(username, password);
-
-         User user = userFileManager.findUser(username);
-         if (user == null || !user.getPassword().equals(password)) {
-             throw new AuthorizationException("Invalid user credentials.");
-         }
-         session.setCurrentAccount(user);
-         return user;
+    public boolean loginUser(String username, String password) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue; // skip empty lines
+                String[] parts = line.split(",");
+                if (parts.length < 3) continue; // skip malformed lines
+                String fileUsername = parts[1]; // username at index 1
+                String filePassword = parts[2]; // password at index 2
+                if (fileUsername.equals(username) && filePassword.equals(password)) {
+                    return true; // correct login
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false; // login failed
     }
     public void logout() {
         session.clear();
@@ -78,40 +87,49 @@ public class AuthService {
             throw new ValidationException("Password cannot be empty.");
         }
     }
-    public void login(String username, String password) {
-        try {
-            loginAdmin(username, password);
-            return;
-        } catch (Exception ignored) {}
-
-        try {
-            loginUser(username, password);
-            return;
-        } catch (Exception ignored) {}
-
-        throw new AuthorizationException("Invalid username or password.");
-    }
 
 
-    public void registerUser(String username, String password) {
-        if (username.isEmpty() || password.isEmpty()) {
-            throw new ValidationException("Username and password cannot be empty.");
+    public void registerUser(String username, String password, String email) {
+        if (username.isEmpty() || password.isEmpty() || email.isEmpty()) {
+            throw new ValidationException("Username, password, and email cannot be empty.");
         }
 
-        // check if user already exists
         if (userExists(username)) {
             throw new ValidationException("Username already exists.");
         }
 
-        saveUserToFile(username, password);
-    }
+        int newId = 1;
 
+        // Get last used ID
+        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(",");
+                if (parts.length < 1) continue;
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    if (id >= newId) newId = id + 1;
+                } catch (NumberFormatException ignored) {}
+            }
+        } catch (IOException ignored) {}
+
+        // Append new user with role USER by default
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("users.txt", true))) {
+            writer.write(newId + "," + username + "," + password + "," + email + ",USER");
+            writer.newLine();
+        } catch (IOException e) {
+            throw new RuntimeException("Error saving user.", e);
+        }
+    }
     private boolean userExists(String username) {
         try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue; // skip empty lines
                 String[] parts = line.split(",");
-                if (parts[0].equals(username)) {
+                if (parts.length < 2) continue; // skip malformed lines
+                if (parts[1].equals(username)) {
                     return true;
                 }
             }
@@ -119,12 +137,95 @@ public class AuthService {
         return false;
     }
 
-    private void saveUserToFile(String username, String password) {
+    private void saveUserToFile(String username, String password, String email) {
+        int newId = 1; // default first ID
+
+        // 1️⃣ Read the file to find the last used ID
+        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue; // skip empty lines
+                String[] parts = line.split(",");
+                if (parts.length < 1) continue; // skip malformed lines
+                try {
+                    int id = Integer.parseInt(parts[0]);
+                    if (id >= newId) newId = id + 1; // increment to get new ID
+                } catch (NumberFormatException ignored) {}
+            }
+        } catch (IOException ignored) {
+            // file might not exist yet, that's okay
+        }
+
+        // 2️⃣ Append the new user to the file
         try (BufferedWriter writer = new BufferedWriter(new FileWriter("users.txt", true))) {
-            writer.write(username + "," + password);
+            writer.write(newId + "," + username + "," + password + "," + email);
             writer.newLine();
         } catch (IOException e) {
-            throw new RuntimeException("Error saving user.");
+            throw new RuntimeException("Error saving user.", e);
         }
     }
+
+    public User getUserByUsername(String username) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue;
+                String[] parts = line.split(",");
+                if (parts.length < 4) continue; // ID, username, password, email
+                if (parts[1].equals(username)) {
+                    int id = Integer.parseInt(parts[0]);
+                    String password = parts[2];
+                    String email = parts[3];
+                    return new User(id, username, password, email);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    public Role login(String username, String password) {
+        // First check admins
+        Admin admin = loginAdminSafe(username, password);
+        if (admin != null) return admin;
+
+        // Then check users
+        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) continue; // skip empty lines
+
+                String[] parts = line.split(","); // ID,username,password,email
+                if (parts.length < 4) continue; // skip malformed lines
+
+                String fileUsername = parts[1];
+                String filePassword = parts[2];
+                String email = parts[3];
+
+                if (fileUsername.equals(username) && filePassword.equals(password)) {
+                    // Create User object and set session
+                    User user = new User(Integer.parseInt(parts[0]), username, password, email);
+                    session.setCurrentAccount(user);
+                    return user; // login successful
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null; // login failed
+    }
+
+    private Admin loginAdminSafe(String username, String password) {
+        try {
+            Admin admin = loginAdmin(username, password);
+            if (admin != null) {
+                session.setCurrentAccount(admin);
+            }
+            return admin;
+        } catch (Exception ignored) {}
+        return null;
+    }
+
 }

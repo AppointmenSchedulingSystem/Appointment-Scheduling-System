@@ -6,6 +6,7 @@ import Fall2026.application.services.AuthService;
 import Fall2026.application.services.AppointmentService;
 import Fall2026.application.services.Session;
 import Fall2026.domain.account.Admin;
+import Fall2026.domain.account.Role;
 import Fall2026.domain.account.User;
 import Fall2026.domain.exceptions.AuthorizationException;
 import Fall2026.domain.exceptions.ValidationException;
@@ -86,8 +87,11 @@ public class GuestShell {
         System.out.print("  New Password: ");
         String password = scanner.nextLine().trim();
 
+        System.out.print("  Email: ");
+        String email = scanner.nextLine().trim();
+
         try {
-            authService.registerUser(username, password);
+            authService.registerUser(username, password, email);
             System.out.println("  ✓ User created successfully!");
         } catch (ValidationException e) {
             System.out.println("  ✗ " + e.getMessage());
@@ -100,31 +104,32 @@ public class GuestShell {
         System.out.print("  Password: ");
         String password = scanner.nextLine().trim();
 
-        try {
-            // Try login (system decides role internally)
-            authService.login(username, password);
+        // Attempt login (returns User or Admin or null)
+        Role account = authService.login(username, password);
 
-            Object account = session.getCurrentAccount();
+        if (account != null) {
+            System.out.println("  ✓ Successfully signed in!");
 
-            if (account instanceof Admin) {
-                Admin admin = (Admin) account;
-                System.out.println("  ✓ Welcome back, " + admin.getUsername() + "!");
-                System.out.println();
+            // Set session
+            session.setCurrentAccount(account);
 
-                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService, adminFileManager,scheduleFileManager);
-                adminShell.run();
-
-            } else if (account instanceof User) {
-                User user = (User) account;
-                System.out.println("  ✓ Welcome back, " + user.getUsername() + "!");
-                System.out.println();
-
+            // Create a single AppointmentService instance
+            if (session.isUser()) {
                 UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
                 userShell.run();
             }
 
-        } catch (AuthorizationException | ValidationException e) {
-            System.out.println("  ✗ " + e.getMessage());
+            // Open proper shell based on role
+            if (session.isUser()) {
+                UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
+                userShell.run();
+            } else if (session.isAdmin()) {
+                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService);
+                adminShell.run();
+            }
+
+        } else {
+            System.out.println("  ✗ Invalid username or password.");
         }
     }
 }

@@ -23,7 +23,7 @@ public class App {
         // Load time slots from Slots.txt on startup
         ScheduleFileManager scheduleFileManager = new ScheduleFileManager(schedule);
         
-        AppointmentService appointmentService = new AppointmentService(schedule);
+        AppointmentService appointmentService = new AppointmentService();
 
         printWelcome();
 
