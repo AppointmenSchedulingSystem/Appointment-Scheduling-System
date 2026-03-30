@@ -1,22 +1,22 @@
+// 📁 FILE: domain/appointment/Appointment.java
+
 package Fall2026.domain.appointment;
 
 import Fall2026.domain.exceptions.ValidationException;
 
 public class Appointment {
 
-
-
-    private final TimeSlot timeSlot;       // the actual slot reserved
+    private final TimeSlot timeSlot;
     private final String description;
     private final int maxCapacity;
     private AppointmentStatus status;
 
-    public enum AppointmentStatus
-    {
+    private int currentBookings;
+    private String userEmail; // ✅ KEEP THIS
+
+    public enum AppointmentStatus {
         CONFIRMED, PENDING, CANCELLED
     }
-
-    private int currentBookings;
 
     public Appointment(TimeSlot timeSlot, String description, int maxCapacity) {
         if (timeSlot == null) throw new ValidationException("TimeSlot cannot be null.");
@@ -42,34 +42,30 @@ public class Appointment {
         return maxCapacity;
     }
 
-    // rename to match AppointmentService expectation
     public int getBookingsCount() {
         return currentBookings;
     }
 
     public int getCurrentBookings() {
-        return currentBookings; // keep your old getter if other code uses it
+        return currentBookings;
     }
 
     public boolean isFull() {
         return currentBookings >= maxCapacity;
     }
 
-    /** @return true if booking was added, false if already full */
     public boolean addBooking() {
         if (isFull()) return false;
         currentBookings++;
         return true;
     }
 
-    /** Removes one booking. Throws if there are no bookings to remove. */
     public void removeBooking() {
         if (currentBookings <= 0) {
             throw new ValidationException("Cannot remove booking: no bookings exist.");
         }
         currentBookings--;
     }
-
 
     public AppointmentStatus getStatus() {
         return status;
@@ -79,4 +75,12 @@ public class Appointment {
         this.status = status;
     }
 
+    // ✅ EMAIL (used by NotificationService)
+    public String getUserEmail() {
+        return userEmail;
+    }
+
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
+    }
 }

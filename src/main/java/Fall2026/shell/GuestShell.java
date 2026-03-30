@@ -8,6 +8,8 @@ import Fall2026.application.services.Session;
 import Fall2026.domain.account.Admin;
 import Fall2026.domain.account.Role;
 import Fall2026.domain.account.User;
+import Fall2026.domain.appointment.Appointment;
+import Fall2026.domain.appointment.TimeSlot;
 import Fall2026.domain.exceptions.AuthorizationException;
 import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.infrastructure.persistence.AdminFileManager;
@@ -57,6 +59,10 @@ public class GuestShell {
                     System.out.println("  Goodbye!");
                     System.out.println();
                     return;
+
+                case "book":
+                    handleBookAppointment();
+                    break;
 
                 case "":
                     break;
@@ -132,4 +138,32 @@ public class GuestShell {
             System.out.println("  ✗ Invalid username or password.");
         }
     }
+
+    private void handleBookAppointment() {
+
+        try {
+            System.out.print("  Enter description: ");
+            String description = scanner.nextLine();
+
+            System.out.print("  Enter max capacity: ");
+            int capacity = Integer.parseInt(scanner.nextLine());
+
+            // ⚠️ Cast Object to TimeSlot
+            TimeSlot slot = (TimeSlot) scheduleFileManager.getAvailableSlots().get(0);
+
+            Appointment appointment = new Appointment(slot, description, capacity);
+
+            // 🔥 IMPORTANT: get logged-in user's email
+            User user = (User) session.getCurrentAccount();
+            appointment.setUserEmail(user.getEmail());
+
+            appointmentService.bookAppointment(appointment);
+
+            System.out.println("  ✓ Appointment booked successfully!");
+
+        } catch (Exception e) {
+            System.out.println("  ✗ " + e.getMessage());
+        }
+    }
+
 }

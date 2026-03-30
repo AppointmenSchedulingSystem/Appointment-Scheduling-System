@@ -9,19 +9,35 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-//TODO: add ScheduleService same as AppointmentService but for Admin to manage the Schedule (add/remove slots, view all appointments, etc.)
 public class AppointmentService {
     private Schedule schedule;
     private List<Appointment> appointments;
     private static final int MAX_DURATION_MINUTES = 120;
+    private NotificationService notificationService;
 
+    // Default constructor
     public AppointmentService() {
-        this.schedule = schedule;
+        this.schedule = new Schedule(); // Initialize schedule
         this.appointments = new ArrayList<>();
     }
 
-    //what the User sees before booking
+    // Constructor with NotificationService
+    public AppointmentService(NotificationService notificationService) {
+        this.schedule = new Schedule(); // Initialize schedule
+        this.appointments = new ArrayList<>();
+        this.notificationService = notificationService;
+    }
+
+    // Safety check to ensure schedule is never null
+    private void ensureSchedule() {
+        if (this.schedule == null) {
+            this.schedule = new Schedule();
+        }
+    }
+
+    // --- User methods ---
     public List<LocalDate> getAvailableDays() {
+        ensureSchedule();
         return schedule.getAvailableDays();
     }
 
@@ -29,28 +45,22 @@ public class AppointmentService {
      * US1.3: return ONLY selectable slots (not fully booked).
      */
     public List<TimeSlot> getSlotsForDay(LocalDate date) {
+        ensureSchedule();
         List<TimeSlot> slots = schedule.getAvailableSlotsForDay(date);
         List<TimeSlot> available = new ArrayList<>();
 
         for (TimeSlot slot : slots) {
             Appointment a = findAppointmentBySlot(slot);
-            if (a == null) {
-                // no bookings yet
-                available.add(slot);
-            } else if (!a.isFull()) {
-                // partially booked
+            if (a == null || !a.isFull()) {
                 available.add(slot);
             }
-            // else: fully booked -> not shown
         }
 
         return available;
     }
 
-    //        the core action
-
+    // Core booking method
     public Appointment bookAppointment(TimeSlot slot, String description, int maxCapacity) {
-
         if (slot.getDuration().toMinutes() > MAX_DURATION_MINUTES) {
             throw new ValidationException("Duration exceeds 2 hour maximum");
         }
@@ -63,47 +73,33 @@ public class AppointmentService {
             appointments.add(appointment);
         }
 
-        // Slot exists but is full
         if (appointment.isFull()) {
             throw new ValidationException("Sorry, that slot is fully booked.");
-            //return null;
         }
 
         appointment.addBooking();
-        //System.out.println("Booked: " + slot.getDate() + " at " + slot.getStartTime());
         return appointment;
     }
-
-    // CANCELLATION — frees the slot back into Schedule
 
     /**
      * Cancels ONE booking from an appointment.
      * If bookings drop to 0, removes the appointment record.
      */
     public boolean cancelAppointment(Appointment appointment) {
-
         if (appointment.getTimeSlot().getDate().isBefore(LocalDate.now())) {
             throw new ValidationException("Cannot cancel a past appointment.");
-            //return false;
         }
 
-        // You need appointment.removeBooking() + getBookingsCount()
         appointment.removeBooking();
 
         if (appointment.getBookingsCount() <= 0) {
             appointments.remove(appointment);
         }
 
-        //  System.out.println("Cancelled booking on " + appointment.getTimeSlot().getDate());
         return true;
     }
 
-    /**
-     * Modifies an existing appointment to a new time slot.
-     * Validates that the appointment is not in the past, then cancels the old appointment
-     * and books a new one with the same description and max capacity.
-     * US4.1: Modify Appointment
-     */
+    // Modify appointment (same slot change)
     public Appointment modifyAppointment(Appointment oldAppt, TimeSlot newSlot) {
         if (oldAppt.getTimeSlot().getDate().isBefore(LocalDate.now())) {
             throw new ValidationException("Cannot modify a past appointment");
@@ -112,17 +108,7 @@ public class AppointmentService {
         return bookAppointment(newSlot, oldAppt.getDescription(), oldAppt.getMaxCapacity());
     }
 
-    /**
-     * Modifies an existing appointment with new time slot and description.
-     * US4.1: Modify Appointment (Enhanced)
-     * Allows users to change the date, time, and description all at once.
-     *
-     * @param oldAppt        the appointment to modify
-     * @param newSlot        the new time slot (date and time)
-     * @param newDescription the new description
-     * @return the modified appointment
-     * @throws ValidationException if appointment is in the past or invalid slot
-     */
+    // Modify appointment (slot + description)
     public Appointment modifyAppointmentFull(Appointment oldAppt, TimeSlot newSlot, String newDescription) {
         if (oldAppt.getTimeSlot().getDate().isBefore(LocalDate.now())) {
             throw new ValidationException("Cannot modify a past appointment");
@@ -132,7 +118,7 @@ public class AppointmentService {
         return bookAppointment(newSlot, newDescription, oldAppt.getMaxCapacity());
     }
 
-    // UTILITY
+    // --- Utility ---
     public List<Appointment> getAllAppointments() {
         return appointments;
     }
@@ -146,23 +132,41 @@ public class AppointmentService {
         return null;
     }
 
+    // --- Admin schedule management ---
     public void addSlot(TimeSlot slot) {
+        ensureSchedule();
         schedule.addSlot(slot);
     }
 
-    /**
-     * Removes a time slot from the schedule.
-     * US4.2: Admin can remove time slots
-     *
-     * @param slot the time slot to remove
-     */
     public void removeSlot(TimeSlot slot) {
+        ensureSchedule();
         schedule.removeSlot(slot);
 
-        // Also remove any appointment associated with this slot
         Appointment apptToRemove = findAppointmentBySlot(slot);
         if (apptToRemove != null) {
             appointments.remove(apptToRemove);
+        }
+    }
+
+    // --- Notification-enabled booking ---
+    public void bookAppointment(Appointment appointment) {
+        if (appointment.isFull()) {
+            throw new RuntimeException("Appointment is full");
+        }
+
+        boolean success = appointment.addBooking();
+        if (!success) {
+            throw new RuntimeException("Could not book appointment");
+        }
+
+        if (notificationService != null && appointment.getUserEmail() != null) {
+            String message = "Hello,\n\n"
+                    + "Your appointment has been successfully booked.\n"
+                    + "Time: " + appointment.getTimeSlot().getStartTime() + "\n"
+                    + "Description: " + appointment.getDescription() + "\n\n"
+                    + "Thank you.";
+
+            notificationService.sendNotification(appointment.getUserEmail(), message);
         }
     }
 }
