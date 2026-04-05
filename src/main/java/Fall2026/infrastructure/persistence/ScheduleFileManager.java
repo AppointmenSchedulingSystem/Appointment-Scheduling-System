@@ -124,6 +124,10 @@ public class ScheduleFileManager {
      */
     public boolean hasTimeConflict(TimeSlot slot) {
         for (TimeSlot existing : schedule.getAllSlots()) {
+            // Skip self-comparison to allow checking slot against itself (not a conflict if already added)
+            if (existing.equals(slot)) {
+                continue;
+            }
             // Only check slots on the same date
             if (existing.getDate().equals(slot.getDate())) {
                 // Check for time range overlap:

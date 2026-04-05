@@ -137,7 +137,7 @@ public class AppointmentService {
         return appointments;
     }
 
-    private Appointment findAppointmentBySlot(TimeSlot slot) {
+    Appointment findAppointmentBySlot(TimeSlot slot) {
         for (Appointment a : appointments) {
             if (a.getTimeSlot().equals(slot)) {
                 return a;
