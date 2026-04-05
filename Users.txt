@@ -1,8 +1,7 @@
 1,user,user123,user@example.com
-
 2,xd,xd,xd@gmail.com
 3,rar,rar,rar@gmail.com
-4,dan,dan,dan@gamil.com,USER
-5,yazan,yazan,m2yazansalem@gmail.com,USER
-6,ahmad,ahmad123,ahmaddaglas326@gmail.com,USER
-7,ahmadd,ahmad123,ahmaddaglas326@gmail.com,USER
+4,dan,dan,dan@gamil.com
+5,yazan,yazan,m2yazansalem@gmail.com
+6,ahmad,ahmad123,ahmaddaglas326@gmail.com
+7,ahmadd,ahmad123,ahmaddaglas326@gmail.com
