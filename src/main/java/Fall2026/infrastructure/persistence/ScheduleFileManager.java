@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class ScheduleFileManager {
     private static final String SLOTS_FILE = "Slots.txt";
@@ -157,6 +158,10 @@ public class ScheduleFileManager {
      */
     public List<TimeSlot> getAllSlots() {
         return schedule.getAllSlots();
+    }
+
+    public Map<Object, Object> getAvailableSlots() {
+        return Map.of();
     }
 }
 

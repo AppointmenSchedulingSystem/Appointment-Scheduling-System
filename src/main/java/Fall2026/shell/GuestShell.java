@@ -6,7 +6,10 @@ import Fall2026.application.services.AuthService;
 import Fall2026.application.services.AppointmentService;
 import Fall2026.application.services.Session;
 import Fall2026.domain.account.Admin;
+import Fall2026.domain.account.Role;
 import Fall2026.domain.account.User;
+import Fall2026.domain.appointment.Appointment;
+import Fall2026.domain.appointment.TimeSlot;
 import Fall2026.domain.exceptions.AuthorizationException;
 import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.infrastructure.persistence.AdminFileManager;
@@ -57,6 +60,10 @@ public class GuestShell {
                     System.out.println();
                     return;
 
+                case "book":
+                    handleBookAppointment();
+                    break;
+
                 case "":
                     break;
 
@@ -86,8 +93,11 @@ public class GuestShell {
         System.out.print("  New Password: ");
         String password = scanner.nextLine().trim();
 
+        System.out.print("  Email: ");
+        String email = scanner.nextLine().trim();
+
         try {
-            authService.registerUser(username, password);
+            authService.registerUser(username, password, email);
             System.out.println("  ✓ User created successfully!");
         } catch (ValidationException e) {
             System.out.println("  ✗ " + e.getMessage());
@@ -100,31 +110,60 @@ public class GuestShell {
         System.out.print("  Password: ");
         String password = scanner.nextLine().trim();
 
-        try {
-            // Try login (system decides role internally)
-            authService.login(username, password);
+        // Attempt login (returns User or Admin or null)
+        Role account = authService.login(username, password);
 
-            Object account = session.getCurrentAccount();
+        if (account != null) {
+            System.out.println("  ✓ Successfully signed in!");
 
-            if (account instanceof Admin) {
-                Admin admin = (Admin) account;
-                System.out.println("  ✓ Welcome back, " + admin.getUsername() + "!");
-                System.out.println();
+            // Set session
+            session.setCurrentAccount(account);
 
-                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService, adminFileManager,scheduleFileManager);
-                adminShell.run();
-
-            } else if (account instanceof User) {
-                User user = (User) account;
-                System.out.println("  ✓ Welcome back, " + user.getUsername() + "!");
-                System.out.println();
-
+            // Create a single AppointmentService instance
+            if (session.isUser()) {
                 UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
                 userShell.run();
             }
 
-        } catch (AuthorizationException | ValidationException e) {
+            // Open proper shell based on role
+            if (session.isUser()) {
+                UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
+                userShell.run();
+            } else if (session.isAdmin()) {
+                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService);
+                adminShell.run();
+            }
+
+        } else {
+            System.out.println("  ✗ Invalid username or password.");
+        }
+    }
+
+    private void handleBookAppointment() {
+
+        try {
+            System.out.print("  Enter description: ");
+            String description = scanner.nextLine();
+
+            System.out.print("  Enter max capacity: ");
+            int capacity = Integer.parseInt(scanner.nextLine());
+
+            // ⚠️ Cast Object to TimeSlot
+            TimeSlot slot = (TimeSlot) scheduleFileManager.getAvailableSlots().get(0);
+
+            Appointment appointment = new Appointment(slot, description, capacity);
+
+            // 🔥 IMPORTANT: get logged-in user's email
+            User user = (User) session.getCurrentAccount();
+            appointment.setUserEmail(user.getEmail());
+
+            appointmentService.bookAppointment(appointment);
+
+            System.out.println("  ✓ Appointment booked successfully!");
+
+        } catch (Exception e) {
             System.out.println("  ✗ " + e.getMessage());
         }
     }
+
 }
