@@ -1,2 +1,2 @@
-1,admin,admin123,admin@example.com
+1,admin,admin123,s12218563@stu.najah.edu
 2,ahmad,ahmad123,ahmad@example.com

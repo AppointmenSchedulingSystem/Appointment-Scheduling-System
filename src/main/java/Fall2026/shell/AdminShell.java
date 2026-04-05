@@ -9,6 +9,7 @@ import Fall2026.domain.account.Admin;
 import Fall2026.domain.appointment.Appointment;
 import Fall2026.domain.appointment.TimeSlot;
 import Fall2026.domain.exceptions.ValidationException;
+import Fall2026.infrastructure.notification.NotificationService;
 import Fall2026.infrastructure.persistence.AdminFileManager;
 import Fall2026.infrastructure.persistence.ScheduleFileManager;
 
@@ -94,6 +95,9 @@ public class AdminShell {
                 case "schedule modify":
                     handleScheduleModify();
                     break;
+                case "notify test":
+                    handleNotifyTest();
+                    break;
 
                 case "":
                     break;
@@ -117,6 +121,7 @@ public class AdminShell {
         System.out.println("  reserve list     View all reservations");
         System.out.println("  reserve cancel   Cancel a reservation");
         System.out.println("  reserve modify   Modify a reservation (date/time/description)");
+        System.out.println("  notify test      Send a test notification email to yourself");
         System.out.println("  admin add        Add a new admin account");
         System.out.println("  signout          Sign out of your account");
         System.out.println("  exit             Exit the system");
@@ -522,5 +527,17 @@ public class AdminShell {
         System.out.println();
     }
 
+
+    private void handleNotifyTest() {
+        Admin admin = (Admin) session.getCurrentAccount();
+        try {
+            NotificationService notifier = new NotificationService();
+            notifier.notify(admin, "This is a test notification from the Appointment Scheduling System. Your email notifications are working correctly!");
+            System.out.println("  ✓ Test email sent to " + admin.getEmail());
+        } catch (Exception e) {
+            System.out.println("  ✗ Failed to send test email: " + e.getMessage());
+        }
+        System.out.println();
+    }
 }
 
