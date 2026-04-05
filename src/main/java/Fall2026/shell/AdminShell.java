@@ -26,7 +26,7 @@ public class AdminShell {
     private final AuthService authService;
     private final AppointmentService appointmentService;
     private final AdminFileManager adminFileManager;
-    private final ScheduleFileManager scheduleFileManager = null;
+    private final ScheduleFileManager scheduleFileManager ;
     private final AdminAppointmentService adminAppointmentService;
 
     public AdminShell(Scanner scanner, Session session, AuthService authService,
@@ -36,7 +36,7 @@ public class AdminShell {
         this.authService = authService;
         this.appointmentService = appointmentService;
         this.adminFileManager = adminFileManager;
-       // this.scheduleFileManager = scheduleFileManager;
+        this.scheduleFileManager = scheduleFileManager;
         this.adminAppointmentService = new AdminAppointmentService(appointmentService, authService);
     }
 

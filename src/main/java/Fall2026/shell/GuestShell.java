@@ -119,18 +119,14 @@ public class GuestShell {
             // Set session
             session.setCurrentAccount(account);
 
-            // Create a single AppointmentService instance
-            if (session.isUser()) {
-                UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
-                userShell.run();
-            }
+
 
             // Open proper shell based on role
             if (session.isUser()) {
                 UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
                 userShell.run();
             } else if (session.isAdmin()) {
-                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService);
+                AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService, adminFileManager, scheduleFileManager);
                 adminShell.run();
             }
 
@@ -141,29 +137,6 @@ public class GuestShell {
 
     private void handleBookAppointment() {
 
-        try {
-            System.out.print("  Enter description: ");
-            String description = scanner.nextLine();
-
-            System.out.print("  Enter max capacity: ");
-            int capacity = Integer.parseInt(scanner.nextLine());
-
-            // ⚠️ Cast Object to TimeSlot
-            TimeSlot slot = (TimeSlot) scheduleFileManager.getAvailableSlots().get(0);
-
-            Appointment appointment = new Appointment(slot, description, capacity);
-
-            // 🔥 IMPORTANT: get logged-in user's email
-            User user = (User) session.getCurrentAccount();
-            appointment.setUserEmail(user.getEmail());
-
-            appointmentService.bookAppointment(appointment);
-
-            System.out.println("  ✓ Appointment booked successfully!");
-
-        } catch (Exception e) {
-            System.out.println("  ✗ " + e.getMessage());
-        }
     }
 
 }

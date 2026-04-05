@@ -19,11 +19,11 @@ public class App {
         UserFileManager userFileManager = new UserFileManager();
         AuthService authService = new AuthService(session, adminFileManager, userFileManager);
         Schedule schedule = new Schedule();
-        
+
         // Load time slots from Slots.txt on startup
         ScheduleFileManager scheduleFileManager = new ScheduleFileManager(schedule);
-        
-        AppointmentService appointmentService = new AppointmentService();
+
+        AppointmentService appointmentService = new AppointmentService(schedule);
 
         printWelcome();
 
