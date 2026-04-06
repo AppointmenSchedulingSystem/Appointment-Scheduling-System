@@ -45,15 +45,15 @@ public class ScheduleFileManager {
             try {
                 String[] parts = line.split(",");
                 // expected format: date,startTime,endTime (times include seconds HH:MM:SS)
-                if (parts.length == 3) {
+                if (parts.length == 4) {
                     LocalDate date = LocalDate.parse(parts[0].trim());
-                    LocalTime startTime = LocalTime.parse(parts[1].trim()); // Parses HH:MM:SS format
-                    LocalTime endTime = LocalTime.parse(parts[2].trim());   // Parses HH:MM:SS format
-
-                    TimeSlot slot = new TimeSlot(date, startTime, endTime);
+                    LocalTime startTime = LocalTime.parse(parts[1].trim());
+                    LocalTime endTime = LocalTime.parse(parts[2].trim());
+                    int maxCapacity = Integer.parseInt(parts[3].trim());
+                    TimeSlot slot = new TimeSlot(date, startTime, endTime, maxCapacity);
                     schedule.addSlot(slot);
                 } else {
-                    System.out.println("Skipping invalid slot line (expected 3 parts): " + line);
+                    System.out.println("Skipping invalid slot line (expected 4 parts): " + line);
                 }
             } catch (Exception e) {
                 System.out.println("Error parsing slot line '" + line + "': " + e.getMessage());
@@ -69,7 +69,7 @@ public class ScheduleFileManager {
     public void saveSlotsToFile() {
         List<String> lines = new ArrayList<>();
         for (TimeSlot slot : schedule.getAllSlots()) {
-            String line = slot.getDate() + "," + slot.getStartTime() + "," + slot.getEndTime();
+            String line = slot.getDate() + "," + slot.getStartTime() + "," + slot.getEndTime() + "," + slot.getMaxCapacity();
             lines.add(line);
         }
         
@@ -83,9 +83,9 @@ public class ScheduleFileManager {
     /**
      * Add a new time slot and save to file
      */
-    public void addTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime) {
-        TimeSlot slot = new TimeSlot(date, startTime, endTime);
-        schedule.addSlot(slot);
+    public void addTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime, int maxCapacity) {
+        TimeSlot slot = new TimeSlot(date, startTime, endTime, maxCapacity);
+            schedule.addSlot(slot);
         saveSlotsToFile();
         System.out.println("New time slot added: " + date + " from " + startTime + " to " + endTime);
     }

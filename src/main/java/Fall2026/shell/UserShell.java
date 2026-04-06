@@ -124,7 +124,10 @@ public class UserShell {
         } else {
             for (int i = 0; i < slots.size(); i++) {
                 TimeSlot slot = slots.get(i);
-                System.out.println("  [" + (i + 1) + "] " + slot.getStartTime() + " → " + slot.getEndTime());
+                Appointment appt = findAppointmentBySlot(slot);
+                int remaining = (appt == null) ? slot.getMaxCapacity() : slot.getMaxCapacity() - appt.getCurrentBookings();
+                System.out.println("  [" + (i + 1) + "] " + slot.getStartTime() + " → " + slot.getEndTime()
+                        + "  │  " + remaining + " spot(s) left");
             }
         }
         System.out.println("  ─────────────────────────────────────────────");
@@ -178,18 +181,11 @@ public class UserShell {
         System.out.print("  Description (e.g. checkup, follow-up): ");
         String description = scanner.nextLine().trim();
 
-        System.out.print("  Max participants (e.g. 1, 5): ");
-        int maxCapacity;
-        try {
-            maxCapacity = Integer.parseInt(scanner.nextLine().trim());
-            if (maxCapacity < 1) throw new NumberFormatException();
-        } catch (NumberFormatException e) {
-            System.out.println("  ✗ Invalid number. Enter a positive integer.");
-            return;
-        }
+
+
 
         try {
-            appointmentService.bookAppointment(selectedSlot, description, maxCapacity);
+            appointmentService.bookAppointment(selectedSlot, description, selectedSlot.getMaxCapacity());
             System.out.println("  ✓ Appointment booked: "
                     + selectedSlot.getDate() + "  "
                     + selectedSlot.getStartTime() + " → " + selectedSlot.getEndTime());
@@ -350,8 +346,8 @@ public class UserShell {
         List<LocalDate> availableDays = appointmentService.getAvailableDays();
 
         System.out.println();
-        System.out.println("  ALL AVAILABLE APPOINTMENT SLOTS");
-        System.out.println("  ═════════════════════════════════════════════");
+        System.out.println("  All available slots:");
+        System.out.println("  ─────────────────────────────────────────────");
 
         if (availableDays.isEmpty()) {
             System.out.println("  No available slots in the system.");
@@ -360,34 +356,21 @@ public class UserShell {
             return;
         }
 
-        int slotNumber = 1;
         for (LocalDate date : availableDays) {
             List<TimeSlot> slots = appointmentService.getSlotsForDay(date);
 
-            System.out.println();
-            System.out.println("  📅 " + date);
-            System.out.println("  ─────────────────────────────────────────────");
-
+            System.out.println("  " + date + ":");
             for (TimeSlot slot : slots) {
                 Appointment appt = findAppointmentBySlot(slot);
-                if (appt == null) {
-                    // No bookings yet - fully available
-                    System.out.println("  [" + slotNumber + "] " + slot.getStartTime() + " → " + slot.getEndTime()
-                            + "  │  AVAILABLE");
-                } else if (!appt.isFull()) {
-                    // Partially booked
-                    System.out.println("  [" + slotNumber + "] " + slot.getStartTime() + " → " + slot.getEndTime()
-                            + "  │  " + (appt.getMaxCapacity() - appt.getCurrentBookings()) + "/" + appt.getMaxCapacity()
-                            + " spots available");
+                int remaining = (appt == null) ? slot.getMaxCapacity() : slot.getMaxCapacity() - appt.getCurrentBookings();
+                if (remaining > 0) {
+                    System.out.println("    " + slot.getStartTime() + " → " + slot.getEndTime()
+                            + "  │  " + remaining + " spot(s) left");
                 }
-                // Fully booked slots are not displayed (per US1.3)
-                slotNumber++;
             }
         }
 
-        System.out.println();
-        System.out.println("  ═════════════════════════════════════════════");
-        System.out.println("  Legend: [#] time  │  availability status");
+        System.out.println("  ─────────────────────────────────────────────");
         System.out.println();
     }
 

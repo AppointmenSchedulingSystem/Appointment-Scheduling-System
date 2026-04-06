@@ -212,6 +212,8 @@ public class AdminShell {
 
         System.out.print("  End time (HH:MM): ");
         String endInput = scanner.nextLine().trim();
+        System.out.print("  Max capacity (number of people): ");
+        String capacityInput = scanner.nextLine().trim();
 
         try {
             LocalDate date = LocalDate.parse(dateInput);
@@ -223,7 +225,12 @@ public class AdminShell {
                 return;
             }
 
-            TimeSlot slot = new TimeSlot(date, start, end);
+            int maxCapacity = Integer.parseInt(capacityInput);
+            if (maxCapacity < 1) {
+                System.out.println("  ✗ Max capacity must be at least 1.");
+                return;
+            }
+            TimeSlot slot = new TimeSlot(date, start, end, maxCapacity);
             
             // Check for conflict (overlap or same start time)
             if (scheduleFileManager.hasTimeConflict(slot)) {
@@ -493,9 +500,21 @@ public class AdminShell {
             System.out.println("  ✗ End time must be after start time.");
             return;
         }
-
+        System.out.print("  Enter new max capacity: ");
+        String capacityInput = scanner.nextLine().trim();
+        int newCapacity;
         try {
-            TimeSlot newSlot = new TimeSlot(newDate, newStart, newEnd);
+            newCapacity = Integer.parseInt(capacityInput);
+            if (newCapacity < 1) {
+                System.out.println("  ✗ Max capacity must be at least 1.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid capacity. Enter a number.");
+            return;
+        }
+        try {
+            TimeSlot newSlot = new TimeSlot(newDate, newStart, newEnd, newCapacity);
             
             // Check for conflict with existing slots (excluding the old slot being modified)
             for (TimeSlot existing : scheduleFileManager.getAllSlots()) {
