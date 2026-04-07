@@ -1,6 +1,5 @@
 package Fall2026.shell;
 
-import Fall2026.application.services.AdminAppointmentService;
 import Fall2026.application.services.AppointmentService;
 import Fall2026.application.services.AuthService;
 import Fall2026.application.services.Session;
@@ -8,7 +7,6 @@ import Fall2026.domain.account.Admin;
 import Fall2026.domain.appointment.Appointment;
 import Fall2026.domain.appointment.Schedule;
 import Fall2026.domain.appointment.TimeSlot;
-import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.infrastructure.persistence.AdminFileManager;
 import Fall2026.infrastructure.persistence.ScheduleFileManager;
 import org.junit.jupiter.api.AfterEach;
@@ -78,8 +76,8 @@ class AdminShellTest {
         // Arrange
         String input = "help\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -96,8 +94,8 @@ class AdminShellTest {
         // Arrange
         String input = "\n\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -111,8 +109,8 @@ class AdminShellTest {
         // Arrange
         String input = "invalid_command\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -127,8 +125,8 @@ class AdminShellTest {
         // Arrange
         String input = "signout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
         assertTrue(session.isLoggedIn());
 
         // Act
@@ -145,8 +143,8 @@ class AdminShellTest {
         // Arrange
         String input = "signout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -166,8 +164,8 @@ class AdminShellTest {
 
         String input = "schedule list\n" + today + "\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -182,8 +180,8 @@ class AdminShellTest {
         // Arrange
         String input = "schedule list\ninvalid-date\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act & Assert - should handle gracefully
         assertDoesNotThrow(() -> adminShell.run());
@@ -196,8 +194,8 @@ class AdminShellTest {
         // Arrange
         String input = "reserve list\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -217,8 +215,8 @@ class AdminShellTest {
 
         String input = "reserve list\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -235,8 +233,8 @@ class AdminShellTest {
         // Arrange
         String input = "admin add\nnewadmin\npassword123\nnewadmin@example.com\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -251,8 +249,8 @@ class AdminShellTest {
         // Arrange
         String input = "admin add\n\n\n\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act & Assert - should handle gracefully
         assertDoesNotThrow(() -> adminShell.run());
@@ -265,8 +263,8 @@ class AdminShellTest {
         // Arrange
         String input = "reserve cancel\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -286,8 +284,8 @@ class AdminShellTest {
 
         String input = "reserve cancel\n999\nsignout\n"; // Invalid index
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -307,8 +305,8 @@ class AdminShellTest {
 
         String input = "reserve cancel\nabc\nsignout\n"; // Non-numeric input
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -325,8 +323,8 @@ class AdminShellTest {
         // Arrange
         String input = "reserve modify\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -346,8 +344,8 @@ class AdminShellTest {
 
         String input = "reserve modify\n999\nsignout\n"; // Invalid index
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -368,8 +366,8 @@ class AdminShellTest {
 
         String input = "schedule add\n2026-04-15\n10:00\n11:00\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -384,8 +382,8 @@ class AdminShellTest {
         // Arrange
         String input = "schedule add\ninvalid-date\n10:00\n11:00\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -400,8 +398,8 @@ class AdminShellTest {
         // Arrange
         String input = "schedule add\n2026-04-15\ninvalid\n11:00\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -416,8 +414,8 @@ class AdminShellTest {
         // Arrange
         String input = "schedule add\n2026-04-15\n11:00\n10:00\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -434,8 +432,8 @@ class AdminShellTest {
         // Arrange
         String input = "schedule modify\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act
         adminShell.run();
@@ -452,8 +450,8 @@ class AdminShellTest {
         // Arrange
         String input = "help\nhelp\nhelp\nsignout\n";
         scanner = new Scanner(input);
-        adminShell = new AdminShell(scanner, session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(scanner, session, authService, appointmentService
+        );
 
         // Act & Assert
         assertDoesNotThrow(() -> adminShell.run());
@@ -463,8 +461,8 @@ class AdminShellTest {
     @Test
     void adminShellInitializesCorrectly() {
         // Arrange & Act
-        adminShell = new AdminShell(new Scanner(""), session, authService, appointmentService,
-                                   mockAdminFileManager, mockScheduleFileManager);
+        adminShell = new AdminShell(new Scanner(""), session, authService, appointmentService
+        );
 
         // Assert
         assertNotNull(adminShell);

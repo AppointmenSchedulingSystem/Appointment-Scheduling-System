@@ -25,12 +25,12 @@ public class AdminShell {
     private final Session session;
     private final AuthService authService;
     private final AppointmentService appointmentService;
-    private final AdminFileManager adminFileManager;
+    private AdminFileManager adminFileManager = null;
     private final ScheduleFileManager scheduleFileManager = null;
     private final AdminAppointmentService adminAppointmentService;
 
     public AdminShell(Scanner scanner, Session session, AuthService authService,
-                      AppointmentService appointmentService, AdminFileManager adminFileManager,ScheduleFileManager scheduleFileManager) {
+                      AppointmentService appointmentService) {
         this.scanner = scanner;
         this.session = session;
         this.authService = authService;
