@@ -13,31 +13,21 @@ public class AppointmentService {
     private Schedule schedule;
     private List<Appointment> appointments;
     private static final int MAX_DURATION_MINUTES = 120;
-    private NotificationService notificationService;
+
 
     // Default constructor
     public AppointmentService() {
         this.schedule = new Schedule(); // Initialize schedule
         this.appointments = new ArrayList<>();
     }
-
-    // Constructor with NotificationService
-    public AppointmentService(NotificationService notificationService) {
-        this.schedule = new Schedule(); // Initialize schedule
+    public AppointmentService(Schedule schedule) {
+        this.schedule = schedule;
         this.appointments = new ArrayList<>();
-        this.notificationService = notificationService;
     }
 
-    // Safety check to ensure schedule is never null
-    private void ensureSchedule() {
-        if (this.schedule == null) {
-            this.schedule = new Schedule();
-        }
-    }
 
     // --- User methods ---
     public List<LocalDate> getAvailableDays() {
-        ensureSchedule();
         return schedule.getAvailableDays();
     }
 
@@ -45,7 +35,6 @@ public class AppointmentService {
      * US1.3: return ONLY selectable slots (not fully booked).
      */
     public List<TimeSlot> getSlotsForDay(LocalDate date) {
-        ensureSchedule();
         List<TimeSlot> slots = schedule.getAvailableSlotsForDay(date);
         List<TimeSlot> available = new ArrayList<>();
 
@@ -134,12 +123,10 @@ public class AppointmentService {
 
     // --- Admin schedule management ---
     public void addSlot(TimeSlot slot) {
-        ensureSchedule();
         schedule.addSlot(slot);
     }
 
     public void removeSlot(TimeSlot slot) {
-        ensureSchedule();
         schedule.removeSlot(slot);
 
         Appointment apptToRemove = findAppointmentBySlot(slot);
@@ -148,25 +135,4 @@ public class AppointmentService {
         }
     }
 
-    // --- Notification-enabled booking ---
-    public void bookAppointment(Appointment appointment) {
-        if (appointment.isFull()) {
-            throw new RuntimeException("Appointment is full");
-        }
-
-        boolean success = appointment.addBooking();
-        if (!success) {
-            throw new RuntimeException("Could not book appointment");
-        }
-
-        if (notificationService != null && appointment.getUserEmail() != null) {
-            String message = "Hello,\n\n"
-                    + "Your appointment has been successfully booked.\n"
-                    + "Time: " + appointment.getTimeSlot().getStartTime() + "\n"
-                    + "Description: " + appointment.getDescription() + "\n\n"
-                    + "Thank you.";
-
-            notificationService.sendNotification(appointment.getUserEmail(), message);
-        }
-    }
 }

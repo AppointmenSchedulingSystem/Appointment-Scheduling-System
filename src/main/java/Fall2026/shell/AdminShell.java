@@ -9,6 +9,7 @@ import Fall2026.domain.account.Admin;
 import Fall2026.domain.appointment.Appointment;
 import Fall2026.domain.appointment.TimeSlot;
 import Fall2026.domain.exceptions.ValidationException;
+import Fall2026.infrastructure.notification.NotificationService;
 import Fall2026.infrastructure.persistence.AdminFileManager;
 import Fall2026.infrastructure.persistence.ScheduleFileManager;
 
@@ -25,18 +26,18 @@ public class AdminShell {
     private final Session session;
     private final AuthService authService;
     private final AppointmentService appointmentService;
-    private AdminFileManager adminFileManager = null;
-    private final ScheduleFileManager scheduleFileManager = null;
+    private final AdminFileManager adminFileManager;
+    private final ScheduleFileManager scheduleFileManager ;
     private final AdminAppointmentService adminAppointmentService;
 
     public AdminShell(Scanner scanner, Session session, AuthService authService,
-                      AppointmentService appointmentService) {
+                      AppointmentService appointmentService, AdminFileManager adminFileManager,ScheduleFileManager scheduleFileManager) {
         this.scanner = scanner;
         this.session = session;
         this.authService = authService;
         this.appointmentService = appointmentService;
         this.adminFileManager = adminFileManager;
-       // this.scheduleFileManager = scheduleFileManager;
+        this.scheduleFileManager = scheduleFileManager;
         this.adminAppointmentService = new AdminAppointmentService(appointmentService, authService);
     }
 
@@ -94,6 +95,9 @@ public class AdminShell {
                 case "schedule modify":
                     handleScheduleModify();
                     break;
+                case "notify test":
+                    handleNotifyTest();
+                    break;
 
                 case "":
                     break;
@@ -117,6 +121,7 @@ public class AdminShell {
         System.out.println("  reserve list     View all reservations");
         System.out.println("  reserve cancel   Cancel a reservation");
         System.out.println("  reserve modify   Modify a reservation (date/time/description)");
+        System.out.println("  notify test      Send a test notification email to yourself");
         System.out.println("  admin add        Add a new admin account");
         System.out.println("  signout          Sign out of your account");
         System.out.println("  exit             Exit the system");
@@ -207,6 +212,8 @@ public class AdminShell {
 
         System.out.print("  End time (HH:MM): ");
         String endInput = scanner.nextLine().trim();
+        System.out.print("  Max capacity (number of people): ");
+        String capacityInput = scanner.nextLine().trim();
 
         try {
             LocalDate date = LocalDate.parse(dateInput);
@@ -218,7 +225,12 @@ public class AdminShell {
                 return;
             }
 
-            TimeSlot slot = new TimeSlot(date, start, end);
+            int maxCapacity = Integer.parseInt(capacityInput);
+            if (maxCapacity < 1) {
+                System.out.println("  ✗ Max capacity must be at least 1.");
+                return;
+            }
+            TimeSlot slot = new TimeSlot(date, start, end, maxCapacity);
             
             // Check for conflict (overlap or same start time)
             if (scheduleFileManager.hasTimeConflict(slot)) {
@@ -488,9 +500,21 @@ public class AdminShell {
             System.out.println("  ✗ End time must be after start time.");
             return;
         }
-
+        System.out.print("  Enter new max capacity: ");
+        String capacityInput = scanner.nextLine().trim();
+        int newCapacity;
         try {
-            TimeSlot newSlot = new TimeSlot(newDate, newStart, newEnd);
+            newCapacity = Integer.parseInt(capacityInput);
+            if (newCapacity < 1) {
+                System.out.println("  ✗ Max capacity must be at least 1.");
+                return;
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("  ✗ Invalid capacity. Enter a number.");
+            return;
+        }
+        try {
+            TimeSlot newSlot = new TimeSlot(newDate, newStart, newEnd, newCapacity);
             
             // Check for conflict with existing slots (excluding the old slot being modified)
             for (TimeSlot existing : scheduleFileManager.getAllSlots()) {
@@ -522,5 +546,17 @@ public class AdminShell {
         System.out.println();
     }
 
+
+    private void handleNotifyTest() {
+        Admin admin = (Admin) session.getCurrentAccount();
+        try {
+            NotificationService notifier = new NotificationService();
+            notifier.notify(admin, "This is a test notification from the Appointment Scheduling System. Your email notifications are working correctly!");
+            System.out.println("  ✓ Test email sent to " + admin.getEmail());
+        } catch (Exception e) {
+            System.out.println("  ✗ Failed to send test email: " + e.getMessage());
+        }
+        System.out.println();
+    }
 }
 

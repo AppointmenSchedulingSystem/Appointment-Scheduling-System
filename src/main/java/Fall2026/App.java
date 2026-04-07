@@ -4,6 +4,7 @@ import Fall2026.application.services.AppointmentService;
 import Fall2026.application.services.AuthService;
 import Fall2026.application.services.Session;
 import Fall2026.domain.appointment.Schedule;
+import Fall2026.infrastructure.notification.NotificationService;
 import Fall2026.infrastructure.persistence.AdminFileManager;
 import Fall2026.infrastructure.persistence.ScheduleFileManager;
 import Fall2026.infrastructure.persistence.UserFileManager;
@@ -19,11 +20,12 @@ public class App {
         UserFileManager userFileManager = new UserFileManager();
         AuthService authService = new AuthService(session, adminFileManager, userFileManager);
         Schedule schedule = new Schedule();
-        
+
         // Load time slots from Slots.txt on startup
         ScheduleFileManager scheduleFileManager = new ScheduleFileManager(schedule);
-        
-        AppointmentService appointmentService = new AppointmentService();
+
+        AppointmentService appointmentService = new AppointmentService(schedule);
+
 
         printWelcome();
 
