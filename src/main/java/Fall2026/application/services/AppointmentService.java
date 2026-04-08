@@ -4,6 +4,10 @@ import Fall2026.domain.appointment.Appointment;
 import Fall2026.domain.appointment.Schedule;
 import Fall2026.domain.appointment.TimeSlot;
 import Fall2026.domain.exceptions.ValidationException;
+import Fall2026.infrastructure.persistence.EmailService;
+import Fall2026.domain.account.User;
+import Fall2026.application.services.Session;
+
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -13,7 +17,8 @@ public class AppointmentService {
     private Schedule schedule;
     private List<Appointment> appointments;
     private static final int MAX_DURATION_MINUTES = 120;
-
+    private EmailService emailService;
+    private Session session;
 
     // Default constructor
     public AppointmentService() {
@@ -24,7 +29,13 @@ public class AppointmentService {
         this.schedule = schedule;
         this.appointments = new ArrayList<>();
     }
-
+    // Constructor
+    public AppointmentService(Schedule schedule, Session session, EmailService emailService) {
+        this.schedule = schedule;
+        this.appointments = new ArrayList<>();
+        this.session = session;
+        this.emailService = emailService;
+    }
 
     // --- User methods ---
     public List<LocalDate> getAvailableDays() {
@@ -48,15 +59,9 @@ public class AppointmentService {
         return available;
     }
 
-    // Core booking method
     public Appointment bookAppointment(TimeSlot slot, String description, int maxCapacity) {
-        if (slot.getDuration().toMinutes() > MAX_DURATION_MINUTES) {
-            throw new ValidationException("Duration exceeds 2 hour maximum");
-        }
-
+        // Existing booking logic...
         Appointment appointment = findAppointmentBySlot(slot);
-
-        // First booking for this slot: create the appointment record
         if (appointment == null) {
             appointment = new Appointment(slot, description, maxCapacity);
             appointments.add(appointment);
@@ -67,6 +72,18 @@ public class AppointmentService {
         }
 
         appointment.addBooking();
+
+        // --- SEND EMAIL TO GUEST ---
+        if (session.isUser()) {
+            User guest = (User) session.getCurrentAccount();
+            emailService.sendGuestBookingEmail(
+                    guest.getEmail(),
+                    guest.getUsername(),
+                    slot.getDate().toString(),
+                    slot.getStartTime() + " → " + slot.getEndTime()
+            );
+        }
+
         return appointment;
     }
 
@@ -134,5 +151,9 @@ public class AppointmentService {
             appointments.remove(apptToRemove);
         }
     }
+
+
+
+
 
 }

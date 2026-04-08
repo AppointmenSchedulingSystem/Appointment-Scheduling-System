@@ -6,10 +6,13 @@ import Fall2026.application.services.Session;
 import Fall2026.domain.appointment.Schedule;
 import Fall2026.infrastructure.notification.NotificationService;
 import Fall2026.infrastructure.persistence.AdminFileManager;
+import Fall2026.infrastructure.persistence.EmailService;
 import Fall2026.infrastructure.persistence.ScheduleFileManager;
 import Fall2026.infrastructure.persistence.UserFileManager;
 import Fall2026.shell.GuestShell;
 import java.util.Scanner;
+import Fall2026.domain.account.User;
+import Fall2026.application.services.Session;
 
 public class App {
 
@@ -19,15 +22,12 @@ public class App {
         AdminFileManager adminFileManager = new AdminFileManager();
         UserFileManager userFileManager = new UserFileManager();
         AuthService authService = new AuthService(session, adminFileManager, userFileManager);
-        Schedule schedule = new Schedule();
 
-        // Load time slots from Slots.txt on startup
+        Schedule schedule = new Schedule();
         ScheduleFileManager scheduleFileManager = new ScheduleFileManager(schedule);
 
-        AppointmentService appointmentService = new AppointmentService(schedule);
-
-
-        printWelcome();
+        EmailService emailService = new EmailService();
+        AppointmentService appointmentService = new AppointmentService(schedule, session, emailService);
 
         GuestShell guestShell = new GuestShell(scanner, session, authService, appointmentService, adminFileManager, scheduleFileManager);
         guestShell.run();
