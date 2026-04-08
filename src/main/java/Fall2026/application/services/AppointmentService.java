@@ -4,7 +4,7 @@ import Fall2026.domain.appointment.Appointment;
 import Fall2026.domain.appointment.Schedule;
 import Fall2026.domain.appointment.TimeSlot;
 import Fall2026.domain.exceptions.ValidationException;
-import Fall2026.infrastructure.persistence.EmailService;
+import Fall2026.infrastructure.notification.NotificationService;
 import Fall2026.domain.account.User;
 import Fall2026.application.services.Session;
 
@@ -17,7 +17,7 @@ public class AppointmentService {
     private Schedule schedule;
     private List<Appointment> appointments;
     private static final int MAX_DURATION_MINUTES = 120;
-    private EmailService emailService;
+    private NotificationService notificationService; ;
     private Session session;
 
     // Default constructor
@@ -30,11 +30,11 @@ public class AppointmentService {
         this.appointments = new ArrayList<>();
     }
     // Constructor
-    public AppointmentService(Schedule schedule, Session session, EmailService emailService) {
+    public AppointmentService(Schedule schedule, Session session, NotificationService notificationService) {
         this.schedule = schedule;
         this.appointments = new ArrayList<>();
         this.session = session;
-        this.emailService = emailService;
+        this.notificationService  = notificationService;
     }
 
     // --- User methods ---
@@ -76,12 +76,10 @@ public class AppointmentService {
         // --- SEND EMAIL TO GUEST ---
         if (session.isUser()) {
             User guest = (User) session.getCurrentAccount();
-            emailService.sendGuestBookingEmail(
-                    guest.getEmail(),
-                    guest.getUsername(),
-                    slot.getDate().toString(),
-                    slot.getStartTime() + " → " + slot.getEndTime()
-            );
+            String message = "Your appointment has been successfully booked.<br><br>"
+                    + "<b>📅 Date:</b> " + slot.getDate() + "<br>"
+                    + "<b>⏰ Time:</b> " + slot.getStartTime() + " → " + slot.getEndTime();
+            notificationService.notify(guest, message);
         }
 
         return appointment;

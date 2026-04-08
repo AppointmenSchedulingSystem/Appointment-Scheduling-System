@@ -6,7 +6,6 @@ import Fall2026.application.services.Session;
 import Fall2026.domain.appointment.Schedule;
 import Fall2026.infrastructure.notification.NotificationService;
 import Fall2026.infrastructure.persistence.AdminFileManager;
-import Fall2026.infrastructure.persistence.EmailService;
 import Fall2026.infrastructure.persistence.ScheduleFileManager;
 import Fall2026.infrastructure.persistence.UserFileManager;
 import Fall2026.shell.GuestShell;
@@ -26,10 +25,11 @@ public class App {
         Schedule schedule = new Schedule();
         ScheduleFileManager scheduleFileManager = new ScheduleFileManager(schedule);
 
-        EmailService emailService = new EmailService();
+        NotificationService emailService = new NotificationService();
         AppointmentService appointmentService = new AppointmentService(schedule, session, emailService);
 
         GuestShell guestShell = new GuestShell(scanner, session, authService, appointmentService, adminFileManager, scheduleFileManager);
+        printWelcome();
         guestShell.run();
 
         scanner.close();
