@@ -122,12 +122,12 @@ public class GuestShell {
 
 
             // Open proper shell based on role
-            if (session.isUser()) {
-                UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
-                userShell.run();
-            } else if (session.isAdmin()) {
+            if (session.isAdmin()) {
                 AdminShell adminShell = new AdminShell(scanner, session, authService, appointmentService, adminFileManager, scheduleFileManager);
                 adminShell.run();
+            } else if (session.isUser()) {
+                UserShell userShell = new UserShell(scanner, session, authService, appointmentService);
+                userShell.run();
             }
 
         } else {
