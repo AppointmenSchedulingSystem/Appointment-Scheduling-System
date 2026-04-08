@@ -5,3 +5,4 @@
 5,yazan,yazan,m2yazansalem@gmail.com
 6,ahmad2,ahmad123,ahmaddaglas326@gmail.com
 7,ahmadd,ahmad123,ahmaddaglas326@gmail.com
+8,sara,pass99,sara@test.com,USER

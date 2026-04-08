@@ -3,10 +3,9 @@ package Fall2026.infrastructure.persistence;
 import jakarta.mail.*;
 import jakarta.mail.internet.*;
 import java.util.Properties;
-
+//deprecated slop
 @Deprecated(since = "2.0", forRemoval = true)
 public class EmailService {
-
     private final String fromEmail = "m2yazansalem@gmail.com";
     private final String appPassword = "";
 
