@@ -25,6 +25,8 @@ public class GuestShell {
     private final AdminFileManager adminFileManager;
     private final AppointmentService appointmentService;
     private final ScheduleFileManager scheduleFileManager;
+    private static final String RESET  = "\u001B[0m";
+    private static final String WHITE  = "\u001B[37m";
 
     public GuestShell(Scanner scanner, Session session, AuthService authService,
                       AppointmentService appointmentService, AdminFileManager adminFileManager, ScheduleFileManager scheduleFileManager) {
@@ -38,7 +40,7 @@ public class GuestShell {
 
     public void run() {
         while (true) {
-            System.out.print("guest@system:~$ ");
+            System.out.print(WHITE + "guest@system" + RESET + ":~$ ");
             String input = scanner.nextLine().trim().toLowerCase();
 
             switch (input) {
@@ -59,10 +61,6 @@ public class GuestShell {
                     System.out.println("  Goodbye!");
                     System.out.println();
                     return;
-
-                case "book":
-                    handleBookAppointment();
-                    break;
 
                 case "":
                     break;
@@ -135,8 +133,6 @@ public class GuestShell {
         }
     }
 
-    private void handleBookAppointment() {
 
-    }
 
 }

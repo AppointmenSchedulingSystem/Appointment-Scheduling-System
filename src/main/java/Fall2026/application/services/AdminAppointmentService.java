@@ -75,5 +75,45 @@ public class AdminAppointmentService {
         authService.requireAdmin();
         appointmentService.removeSlot(slot);
     }
+
+
+
+    /**
+     * Approves a PENDING appointment.
+     * Sets status to CONFIRMED and returns the appointment.
+     *
+     * @param appt the appointment to approve
+     * @throws AuthorizationException if user is not an admin
+     * @throws ValidationException if appointment is not in PENDING state
+     */
+    public Appointment adminApprove(Appointment appt) {
+        authService.requireAdmin();
+
+        if (appt.getStatus() != Appointment.AppointmentStatus.PENDING) {
+            throw new ValidationException("Appointment is not pending approval.");
+        }
+
+        appt.setStatus(Appointment.AppointmentStatus.CONFIRMED);
+        return appt;
+    }
+
+    /**
+     * Rejects a PENDING appointment — cancels it entirely.
+     *
+     * @param appt the appointment to reject
+     * @throws AuthorizationException if user is not an admin
+     */
+    public void adminReject(Appointment appt) {
+        authService.requireAdmin();
+
+        if (appt.getStatus() != Appointment.AppointmentStatus.PENDING) {
+            throw new ValidationException("Appointment is not pending approval.");
+        }
+
+        appointmentService.cancelAppointment(appt);
+    }
+
+
+
 }
 

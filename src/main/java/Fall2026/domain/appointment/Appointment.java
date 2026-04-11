@@ -1,5 +1,3 @@
-// 📁 FILE: domain/appointment/Appointment.java
-
 package Fall2026.domain.appointment;
 
 import Fall2026.domain.exceptions.ValidationException;
@@ -10,26 +8,32 @@ public class Appointment {
     private final String description;
     private final int maxCapacity;
     private AppointmentStatus status;
+    private final AppointmentType appointmentType;
 
     private int currentBookings;
-    private String userEmail; // ✅ KEEP THIS
+    private String userEmail;
 
     public enum AppointmentStatus {
         CONFIRMED, PENDING, CANCELLED
     }
 
-    public Appointment(TimeSlot timeSlot, String description, int maxCapacity) {
-        if (timeSlot == null) throw new ValidationException("TimeSlot cannot be null.");
+    public Appointment(TimeSlot timeSlot, String description, int maxCapacity, AppointmentType appointmentType) {
+        if (timeSlot == null)    throw new ValidationException("TimeSlot cannot be null.");
         if (description == null) description = "";
-        if (maxCapacity <= 0) throw new ValidationException("maxCapacity must be positive.");
+        if (maxCapacity <= 0)    throw new ValidationException("maxCapacity must be positive.");
+        if (appointmentType == null) throw new ValidationException("AppointmentType cannot be null.");
 
-        this.timeSlot = timeSlot;
-        this.description = description;
-        this.maxCapacity = maxCapacity;
+        this.timeSlot        = timeSlot;
+        this.description     = description;
+        this.maxCapacity     = maxCapacity;
+        this.appointmentType = appointmentType;
         this.currentBookings = 0;
-        this.status = AppointmentStatus.CONFIRMED;
+        this.status          = AppointmentStatus.CONFIRMED;
     }
 
+    public AppointmentType getAppointmentType() {
+        return appointmentType;
+    }
     public TimeSlot getTimeSlot() {
         return timeSlot;
     }
@@ -66,7 +70,6 @@ public class Appointment {
         }
         currentBookings--;
     }
-
     public AppointmentStatus getStatus() {
         return status;
     }
@@ -75,12 +78,6 @@ public class Appointment {
         this.status = status;
     }
 
-    // ✅ EMAIL (used by NotificationService)
-    public String getUserEmail() {
-        return userEmail;
-    }
 
-    public void setUserEmail(String userEmail) {
-        this.userEmail = userEmail;
-    }
+
 }
