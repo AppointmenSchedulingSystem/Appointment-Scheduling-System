@@ -14,9 +14,9 @@ import java.util.Properties;
  */
 public class NotificationService implements Observer {
 
-    private final String fromEmail;
-    private final String appPassword;
-    private final Session mailSession;
+    protected final String fromEmail;
+    protected final String appPassword;
+    protected final Session mailSession;
 
     public NotificationService() {
         Properties config = loadConfig();
@@ -36,7 +36,7 @@ public class NotificationService implements Observer {
             String html = buildHtml(role.getUsername(), message);
 
             email.setContent(html, "text/html; charset=utf-8");
-            Transport.send(email);
+            sendEmail(email);
 
             System.out.println("[NOTIFICATION] Email sent to " + role.getEmail());
         } catch (Exception e) {
@@ -85,6 +85,10 @@ public class NotificationService implements Observer {
     }
 
     // --- Private helpers ---
+
+    protected void sendEmail(Message email) throws MessagingException {
+        Transport.send(email);
+    }
 
     private Session buildSession() {
         Properties smtpProps = new Properties();
