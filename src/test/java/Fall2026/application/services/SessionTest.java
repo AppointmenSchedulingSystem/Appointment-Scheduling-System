@@ -5,20 +5,39 @@ import Fall2026.domain.account.Role;
 import Fall2026.domain.account.User;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Comprehensive test suite for Session class.
+ * Tests session management, account switching, and authorization state tracking.
+ *
+ * Test Coverage:
+ * - Account state management (get, set, clear)
+ * - Authorization checks (isAdmin, isUser, isLoggedIn)
+ * - State transitions (switching accounts, logging out)
+ * - Invariants (mutual exclusivity, consistency)
+ * - Edge cases (null handling, rapid transitions)
+ * - Stress tests (multiple operations)
+ */
+@DisplayName("Session Management Tests")
 class SessionTest {
     private Session session;
     private Admin testAdmin;
     private User testUser;
+    private User testUser2;
 
     @BeforeEach
     void setUp() {
         session = new Session();
-        testAdmin = new Admin(1, "admin", "password123", "admin@example.com");
-        testUser = new User(2, "user", "password123", "user@example.com");
+        testAdmin = createTestAdmin(1, "admin");
+        testUser = createTestUser(2, "user");
+        testUser2 = createTestUser(3, "user2");
     }
 
     @AfterEach
@@ -26,466 +45,744 @@ class SessionTest {
         session.clear();
     }
 
+    // ========== Test Data Factories ==========
+
+    /**
+     * Factory: Create a test Admin instance
+     */
+    private Admin createTestAdmin(int id, String name) {
+        return new Admin(id, name, "password123", name + "@example.com");
+    }
+
+    /**
+     * Factory: Create a test User instance
+     */
+    private User createTestUser(int id, String name) {
+        return new User(id, name, "password123", name + "@example.com");
+    }
+
     // ========== getCurrentAccount() Tests ==========
 
-    @Test
-    void getCurrentAccountReturnsNullWhenNoAccountSet() {
-        // Act
-        Role currentAccount = session.getCurrentAccount();
+    @Nested
+    @DisplayName("getCurrentAccount() Tests")
+    class GetCurrentAccountTests {
 
-        // Assert
-        assertNull(currentAccount);
-    }
+        @Test
+        @DisplayName("should return null when no account is set")
+        void returnsNullWhenNoAccountSet() {
+            assertNull(session.getCurrentAccount(),
+                "Current account should be null before any account is set");
+        }
 
-    @Test
-    void getCurrentAccountReturnsAdminAfterSettingAdmin() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
+        @Test
+        @DisplayName("should return the exact Admin instance that was set")
+        void returnsAdminAfterSettingAdmin() {
+            session.setCurrentAccount(testAdmin);
 
-        // Act
-        Role currentAccount = session.getCurrentAccount();
+            Role currentAccount = session.getCurrentAccount();
 
-        // Assert
-        assertNotNull(currentAccount);
-        assertEquals(testAdmin, currentAccount);
-        assertSame(testAdmin, currentAccount);
-    }
+            assertNotNull(currentAccount);
+            assertSame(testAdmin, currentAccount, "Should return the same Admin instance");
+            assertEquals(testAdmin, currentAccount);
+        }
 
-    @Test
-    void getCurrentAccountReturnsUserAfterSettingUser() {
-        // Arrange
-        session.setCurrentAccount(testUser);
+        @Test
+        @DisplayName("should return the exact User instance that was set")
+        void returnsUserAfterSettingUser() {
+            session.setCurrentAccount(testUser);
 
-        // Act
-        Role currentAccount = session.getCurrentAccount();
+            Role currentAccount = session.getCurrentAccount();
 
-        // Assert
-        assertNotNull(currentAccount);
-        assertEquals(testUser, currentAccount);
-        assertSame(testUser, currentAccount);
-    }
+            assertNotNull(currentAccount);
+            assertSame(testUser, currentAccount, "Should return the same User instance");
+            assertEquals(testUser, currentAccount);
+        }
 
-    @Test
-    void getCurrentAccountReturnsLatestAccountAfterMultipleSets() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        session.setCurrentAccount(testUser);
+        @Test
+        @DisplayName("should return the latest account after multiple sets")
+        void returnsLatestAccountAfterMultipleSets() {
+            session.setCurrentAccount(testAdmin);
+            session.setCurrentAccount(testUser);
 
-        // Act
-        Role currentAccount = session.getCurrentAccount();
+            Role currentAccount = session.getCurrentAccount();
 
-        // Assert
-        assertEquals(testUser, currentAccount);
-        assertNotEquals(testAdmin, currentAccount);
+            assertEquals(testUser, currentAccount, "Should return the most recently set account");
+            assertNotEquals(testAdmin, currentAccount);
+        }
+
+        @Test
+        @DisplayName("should preserve account through multiple intermediate operations")
+        void preservesAccountThroughOperations() {
+            session.setCurrentAccount(testAdmin);
+
+            // Call multiple methods to ensure state is preserved
+            boolean isAdmin1 = session.isAdmin();
+            boolean isLoggedIn1 = session.isLoggedIn();
+            Role account1 = session.getCurrentAccount();
+            boolean isAdmin2 = session.isAdmin();
+
+            assertEquals(testAdmin, account1);
+            assertTrue(isAdmin1);
+            assertTrue(isLoggedIn1);
+            assertTrue(isAdmin2);
+        }
+
+        @Test
+        @DisplayName("should return different instances for different users with same properties")
+        void distinguishesDifferentUserInstances() {
+            User differentUser = createTestUser(2, "user");
+            session.setCurrentAccount(differentUser);
+
+            Role currentAccount = session.getCurrentAccount();
+
+            // Should be the exact instance, not just equal
+            assertSame(differentUser, currentAccount);
+            assertNotSame(testUser, currentAccount);
+        }
     }
 
     // ========== setCurrentAccount() Tests ==========
 
-    @Test
-    void setCurrentAccountWithAdmin() {
-        // Act
-        session.setCurrentAccount(testAdmin);
+    @Nested
+    @DisplayName("setCurrentAccount() Tests")
+    class SetCurrentAccountTests {
 
-        // Assert
-        assertEquals(testAdmin, session.getCurrentAccount());
-        assertTrue(session.isLoggedIn());
-        assertTrue(session.isAdmin());
-    }
+        @Test
+        @DisplayName("should set Admin and update all related states")
+        void setCurrentAccountWithAdmin() {
+            session.setCurrentAccount(testAdmin);
 
-    @Test
-    void setCurrentAccountWithUser() {
-        // Act
-        session.setCurrentAccount(testUser);
+            assertEquals(testAdmin, session.getCurrentAccount());
+            assertTrue(session.isLoggedIn());
+            assertTrue(session.isAdmin());
+            assertFalse(session.isUser());
+        }
 
-        // Assert
-        assertEquals(testUser, session.getCurrentAccount());
-        assertTrue(session.isLoggedIn());
-        assertTrue(session.isUser());
-    }
+        @Test
+        @DisplayName("should set User and update all related states")
+        void setCurrentAccountWithUser() {
+            session.setCurrentAccount(testUser);
 
-    @Test
-    void setCurrentAccountWithNull() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isLoggedIn());
+            assertEquals(testUser, session.getCurrentAccount());
+            assertTrue(session.isLoggedIn());
+            assertTrue(session.isUser());
+            assertFalse(session.isAdmin());
+        }
 
-        // Act
-        session.setCurrentAccount(null);
+        @Test
+        @DisplayName("should handle setting to null after having an account")
+        void setCurrentAccountWithNull() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isLoggedIn());
 
-        // Assert
-        assertNull(session.getCurrentAccount());
-        assertFalse(session.isLoggedIn());
-    }
+            session.setCurrentAccount(null);
 
-    @Test
-    void setCurrentAccountCanReplaceExistingAccount() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isAdmin());
+            assertNull(session.getCurrentAccount());
+            assertFalse(session.isLoggedIn());
+            assertFalse(session.isAdmin());
+            assertFalse(session.isUser());
+        }
 
-        // Act
-        session.setCurrentAccount(testUser);
+        @Test
+        @DisplayName("should replace existing Admin with User")
+        void replaceAdminWithUser() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isAdmin());
 
-        // Assert
-        assertEquals(testUser, session.getCurrentAccount());
-        assertTrue(session.isUser());
-        assertFalse(session.isAdmin());
-    }
+            session.setCurrentAccount(testUser);
 
-    @Test
-    void setCurrentAccountMultipleTimes() {
-        // Arrange & Act
-        session.setCurrentAccount(testAdmin);
-        session.setCurrentAccount(testUser);
-        session.setCurrentAccount(testAdmin);
+            assertEquals(testUser, session.getCurrentAccount());
+            assertTrue(session.isUser());
+            assertFalse(session.isAdmin());
+        }
 
-        // Assert
-        assertEquals(testAdmin, session.getCurrentAccount());
-        assertTrue(session.isAdmin());
-        assertFalse(session.isUser());
+        @Test
+        @DisplayName("should replace existing User with Admin")
+        void replaceUserWithAdmin() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isUser());
+
+            session.setCurrentAccount(testAdmin);
+
+            assertEquals(testAdmin, session.getCurrentAccount());
+            assertTrue(session.isAdmin());
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should handle rapid successive changes")
+        void multipleSuccessiveChanges() {
+            session.setCurrentAccount(testAdmin);
+            session.setCurrentAccount(testUser);
+            session.setCurrentAccount(testAdmin);
+
+            assertEquals(testAdmin, session.getCurrentAccount());
+            assertTrue(session.isAdmin());
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should handle alternating between same account types")
+        void alternatingBetweenDifferentUsers() {
+            User user2 = new User(3, "user2", "pass456", "user2@example.com");
+
+            session.setCurrentAccount(testUser);
+            assertEquals(testUser, session.getCurrentAccount());
+
+            session.setCurrentAccount(user2);
+            assertEquals(user2, session.getCurrentAccount());
+            assertNotEquals(testUser, session.getCurrentAccount());
+        }
     }
 
     // ========== clear() Tests ==========
 
-    @Test
-    void clearRemovesCurrentAccount() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isLoggedIn());
+    @Nested
+    @DisplayName("clear() Tests")
+    class ClearTests {
 
-        // Act
-        session.clear();
+        @Test
+        @DisplayName("should clear Admin account completely")
+        void clearRemovesAdminAccount() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isLoggedIn());
 
-        // Assert
-        assertNull(session.getCurrentAccount());
-        assertFalse(session.isLoggedIn());
-    }
-
-    @Test
-    void clearMakesNotAdminAndNotUser() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isAdmin());
-
-        // Act
-        session.clear();
-
-        // Assert
-        assertFalse(session.isAdmin());
-        assertFalse(session.isUser());
-    }
-
-    @Test
-    void clearCanBeCalledMultipleTimes() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-
-        // Act
-        session.clear();
-        session.clear();
-        session.clear();
-
-        // Assert
-        assertNull(session.getCurrentAccount());
-        assertFalse(session.isLoggedIn());
-    }
-
-    @Test
-    void clearOnEmptySessionDoesNotThrow() {
-        // Act & Assert - should not throw
-        assertDoesNotThrow(() -> {
             session.clear();
-        });
-        assertNull(session.getCurrentAccount());
+
+            assertNull(session.getCurrentAccount());
+            assertFalse(session.isLoggedIn());
+            assertFalse(session.isAdmin());
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should clear User account completely")
+        void clearRemovesUserAccount() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isLoggedIn());
+
+            session.clear();
+
+            assertNull(session.getCurrentAccount());
+            assertFalse(session.isLoggedIn());
+            assertFalse(session.isUser());
+            assertFalse(session.isAdmin());
+        }
+
+        @Test
+        @DisplayName("should be idempotent - calling multiple times is safe")
+        void clearCanBeCalledMultipleTimes() {
+            session.setCurrentAccount(testAdmin);
+
+            session.clear();
+            session.clear();
+            session.clear();
+
+            assertNull(session.getCurrentAccount());
+            assertFalse(session.isLoggedIn());
+        }
+
+        @Test
+        @DisplayName("should not throw exception when called on empty session")
+        void clearOnEmptySessionDoesNotThrow() {
+            assertDoesNotThrow(() -> {
+                session.clear();
+                session.clear();
+            });
+            assertNull(session.getCurrentAccount());
+        }
+
+        @Test
+        @DisplayName("should restore session to initial state")
+        void clearRestoresInitialState() {
+            // Record initial state
+            boolean initialLoggedIn = session.isLoggedIn();
+            Role initialAccount = session.getCurrentAccount();
+
+            // Set and then clear
+            session.setCurrentAccount(testAdmin);
+            session.clear();
+
+            // Verify restored to initial
+            assertEquals(initialLoggedIn, session.isLoggedIn());
+            assertEquals(initialAccount, session.getCurrentAccount());
+        }
     }
 
     // ========== isLoggedIn() Tests ==========
 
-    @Test
-    void isLoggedInReturnsFalseByDefault() {
-        // Act
-        boolean loggedIn = session.isLoggedIn();
+    @Nested
+    @DisplayName("isLoggedIn() Tests")
+    class IsLoggedInTests {
 
-        // Assert
-        assertFalse(loggedIn);
-    }
+        @Test
+        @DisplayName("should return false by default")
+        void isLoggedInReturnsFalseByDefault() {
+            assertFalse(session.isLoggedIn());
+        }
 
-    @Test
-    void isLoggedInReturnsTrueAfterSettingAdmin() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
+        @Test
+        @DisplayName("should return true after setting Admin")
+        void isLoggedInReturnsTrueAfterSettingAdmin() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isLoggedIn());
+        }
 
-        // Act
-        boolean loggedIn = session.isLoggedIn();
+        @Test
+        @DisplayName("should return true after setting User")
+        void isLoggedInReturnsTrueAfterSettingUser() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isLoggedIn());
+        }
 
-        // Assert
-        assertTrue(loggedIn);
-    }
+        @Test
+        @DisplayName("should return false after clear")
+        void isLoggedInReturnsFalseAfterClear() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isLoggedIn());
 
-    @Test
-    void isLoggedInReturnsTrueAfterSettingUser() {
-        // Arrange
-        session.setCurrentAccount(testUser);
+            session.clear();
 
-        // Act
-        boolean loggedIn = session.isLoggedIn();
+            assertFalse(session.isLoggedIn());
+        }
 
-        // Assert
-        assertTrue(loggedIn);
-    }
+        @Test
+        @DisplayName("should return false after setting to null")
+        void isLoggedInReturnsFalseAfterSettingNull() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isLoggedIn());
 
-    @Test
-    void isLoggedInReturnsFalseAfterClear() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isLoggedIn());
+            session.setCurrentAccount(null);
 
-        // Act
-        session.clear();
-        boolean loggedIn = session.isLoggedIn();
+            assertFalse(session.isLoggedIn());
+        }
 
-        // Assert
-        assertFalse(loggedIn);
-    }
+        @Test
+        @DisplayName("should correlate exactly with currentAccount not null")
+        void correlatesWithCurrentAccount() {
+            // Empty session
+            assertEquals(null != session.getCurrentAccount(), session.isLoggedIn());
 
-    @Test
-    void isLoggedInReturnsFalseAfterSettingNull() {
-        // Arrange
-        session.setCurrentAccount(testUser);
-        assertTrue(session.isLoggedIn());
+            // Set Admin
+            session.setCurrentAccount(testAdmin);
+            assertEquals(null != session.getCurrentAccount(), session.isLoggedIn());
 
-        // Act
-        session.setCurrentAccount(null);
-        boolean loggedIn = session.isLoggedIn();
+            // Set User
+            session.setCurrentAccount(testUser);
+            assertEquals(null != session.getCurrentAccount(), session.isLoggedIn());
 
-        // Assert
-        assertFalse(loggedIn);
+            // Clear
+            session.clear();
+            assertEquals(null != session.getCurrentAccount(), session.isLoggedIn());
+        }
     }
 
     // ========== isAdmin() Tests ==========
 
-    @Test
-    void isAdminReturnsFalseByDefault() {
-        // Act
-        boolean isAdmin = session.isAdmin();
+    @Nested
+    @DisplayName("isAdmin() Tests")
+    class IsAdminTests {
 
-        // Assert
-        assertFalse(isAdmin);
-    }
+        @Test
+        @DisplayName("should return false by default")
+        void isAdminReturnsFalseByDefault() {
+            assertFalse(session.isAdmin());
+        }
 
-    @Test
-    void isAdminReturnsTrueWhenAdminLoggedIn() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
+        @Test
+        @DisplayName("should return true only when Admin is logged in")
+        void isAdminReturnsTrueWhenAdminLoggedIn() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isAdmin());
+        }
 
-        // Act
-        boolean isAdmin = session.isAdmin();
+        @Test
+        @DisplayName("should return false when User is logged in")
+        void isAdminReturnsFalseWhenUserLoggedIn() {
+            session.setCurrentAccount(testUser);
+            assertFalse(session.isAdmin());
+        }
 
-        // Assert
-        assertTrue(isAdmin);
-    }
+        @Test
+        @DisplayName("should return false after clearing Admin session")
+        void isAdminReturnsFalseAfterClearingSession() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isAdmin());
 
-    @Test
-    void isAdminReturnsFalseWhenUserLoggedIn() {
-        // Arrange
-        session.setCurrentAccount(testUser);
+            session.clear();
 
-        // Act
-        boolean isAdmin = session.isAdmin();
+            assertFalse(session.isAdmin());
+        }
 
-        // Assert
-        assertFalse(isAdmin);
-    }
+        @Test
+        @DisplayName("should change when switching from Admin to User")
+        void isAdminChangesAfterSwitchingAccounts() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isAdmin());
 
-    @Test
-    void isAdminReturnsFalseAfterClearingSession() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isAdmin());
+            session.setCurrentAccount(testUser);
 
-        // Act
-        session.clear();
-        boolean isAdmin = session.isAdmin();
+            assertFalse(session.isAdmin());
+        }
 
-        // Assert
-        assertFalse(isAdmin);
-    }
+        @Test
+        @DisplayName("should return false after setting null")
+        void isAdminReturnsFalseAfterSettingNull() {
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isAdmin());
 
-    @Test
-    void isAdminChangesAfterSwitchingAccounts() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isAdmin());
+            session.setCurrentAccount(null);
 
-        // Act
-        session.setCurrentAccount(testUser);
-        boolean isAdmin = session.isAdmin();
+            assertFalse(session.isAdmin());
+        }
 
-        // Assert
-        assertFalse(isAdmin);
-    }
+        @Test
+        @DisplayName("should be consistent with instanceof check")
+        void consistentWithInstanceof() {
+            session.setCurrentAccount(testAdmin);
+            assertEquals(session.getCurrentAccount() instanceof Admin, session.isAdmin());
 
-    @Test
-    void isAdminReturnsFalseAfterSettingNull() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isAdmin());
-
-        // Act
-        session.setCurrentAccount(null);
-        boolean isAdmin = session.isAdmin();
-
-        // Assert
-        assertFalse(isAdmin);
+            session.setCurrentAccount(testUser);
+            assertEquals(session.getCurrentAccount() instanceof Admin, session.isAdmin());
+        }
     }
 
     // ========== isUser() Tests ==========
 
-    @Test
-    void isUserReturnsFalseByDefault() {
-        // Act
-        boolean isUser = session.isUser();
+    @Nested
+    @DisplayName("isUser() Tests")
+    class IsUserTests {
 
-        // Assert
-        assertFalse(isUser);
+        @Test
+        @DisplayName("should return false by default")
+        void isUserReturnsFalseByDefault() {
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should return true only when User is logged in")
+        void isUserReturnsTrueWhenUserLoggedIn() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should return false when Admin is logged in")
+        void isUserReturnsFalseWhenAdminLoggedIn() {
+            session.setCurrentAccount(testAdmin);
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should return false after clearing User session")
+        void isUserReturnsFalseAfterClearingSession() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isUser());
+
+            session.clear();
+
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should change when switching from User to Admin")
+        void isUserChangesAfterSwitchingAccounts() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isUser());
+
+            session.setCurrentAccount(testAdmin);
+
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should return false after setting null")
+        void isUserReturnsFalseAfterSettingNull() {
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isUser());
+
+            session.setCurrentAccount(null);
+
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("should be consistent with instanceof check")
+        void consistentWithInstanceof() {
+            session.setCurrentAccount(testUser);
+            assertEquals(session.getCurrentAccount() instanceof User, session.isUser());
+
+            session.setCurrentAccount(testAdmin);
+            assertEquals(session.getCurrentAccount() instanceof User, session.isUser());
+        }
     }
 
-    @Test
-    void isUserReturnsTrueWhenUserLoggedIn() {
-        // Arrange
-        session.setCurrentAccount(testUser);
+    // ========== State Management & Invariant Tests ==========
 
-        // Act
-        boolean isUser = session.isUser();
+    @Nested
+    @DisplayName("State Management & Invariant Tests")
+    class StateManagementTests {
 
-        // Assert
-        assertTrue(isUser);
+        @Test
+        @DisplayName("Admin and User should never both be true simultaneously")
+        void adminAndUserAreNeverBothTrue() {
+            // Test with Admin
+            session.setCurrentAccount(testAdmin);
+            assertFalse(session.isAdmin() && session.isUser(),
+                "Admin and User should not both be true");
+
+            // Test with User
+            session.setCurrentAccount(testUser);
+            assertFalse(session.isAdmin() && session.isUser(),
+                "Admin and User should not both be true");
+
+            // Test with null
+            session.clear();
+            assertFalse(session.isAdmin() && session.isUser(),
+                "Neither should be true when logged out");
+        }
+
+        @Test
+        @DisplayName("isLoggedIn() should equal (currentAccount != null)")
+        void isLoggedInCorrelatesWithCurrentAccount() {
+            // Test empty
+            assertEquals(session.getCurrentAccount() != null, session.isLoggedIn());
+
+            // Test with Admin
+            session.setCurrentAccount(testAdmin);
+            assertEquals(session.getCurrentAccount() != null, session.isLoggedIn());
+
+            // Test with User
+            session.setCurrentAccount(testUser);
+            assertEquals(session.getCurrentAccount() != null, session.isLoggedIn());
+
+            // Test after clear
+            session.clear();
+            assertEquals(session.getCurrentAccount() != null, session.isLoggedIn());
+        }
+
+        @Test
+        @DisplayName("isAdmin() should equal (currentAccount instanceof Admin)")
+        void isAdminCorrelatesWithInstanceCheck() {
+            session.setCurrentAccount(testAdmin);
+            assertEquals(session.getCurrentAccount() instanceof Admin, session.isAdmin());
+
+            session.setCurrentAccount(testUser);
+            assertEquals(session.getCurrentAccount() instanceof Admin, session.isAdmin());
+
+            session.clear();
+            assertEquals(session.getCurrentAccount() instanceof Admin, session.isAdmin());
+        }
+
+        @Test
+        @DisplayName("isUser() should equal (currentAccount instanceof User)")
+        void isUserCorrelatesWithInstanceCheck() {
+            session.setCurrentAccount(testUser);
+            assertEquals(session.getCurrentAccount() instanceof User, session.isUser());
+
+            session.setCurrentAccount(testAdmin);
+            assertEquals(session.getCurrentAccount() instanceof User, session.isUser());
+
+            session.clear();
+            assertEquals(session.getCurrentAccount() instanceof User, session.isUser());
+        }
+
+        @Test
+        @DisplayName("complete workflow: login, switch, logout, verify clean state")
+        void completeWorkflow() {
+            // Initial state
+            assertFalse(session.isLoggedIn());
+            assertNull(session.getCurrentAccount());
+
+            // User login
+            session.setCurrentAccount(testUser);
+            assertTrue(session.isLoggedIn());
+            assertTrue(session.isUser());
+            assertFalse(session.isAdmin());
+            assertEquals(testUser, session.getCurrentAccount());
+
+            // Admin login (replaces user)
+            session.setCurrentAccount(testAdmin);
+            assertTrue(session.isLoggedIn());
+            assertTrue(session.isAdmin());
+            assertFalse(session.isUser());
+            assertEquals(testAdmin, session.getCurrentAccount());
+
+            // Logout
+            session.clear();
+            assertFalse(session.isLoggedIn());
+            assertFalse(session.isAdmin());
+            assertFalse(session.isUser());
+            assertNull(session.getCurrentAccount());
+        }
+
+        @Test
+        @DisplayName("rapid state transitions maintain consistency")
+        void rapidStateTransitions() {
+            for (int i = 0; i < 5; i++) {
+                session.setCurrentAccount(testAdmin);
+                assertTrue(session.isAdmin());
+                assertFalse(session.isUser());
+
+                session.setCurrentAccount(testUser);
+                assertFalse(session.isAdmin());
+                assertTrue(session.isUser());
+            }
+
+            session.clear();
+            assertFalse(session.isAdmin());
+            assertFalse(session.isUser());
+        }
+
+        @Test
+        @DisplayName("session maintains isolation - state only reflects current account")
+        void sessionIsolation() {
+            User user2 = new User(99, "other", "pass999", "other@example.com");
+
+            session.setCurrentAccount(testUser);
+            assertEquals(testUser, session.getCurrentAccount());
+
+            // Create but don't set user2 - session should not be affected
+            session.setCurrentAccount(user2);
+            assertEquals(user2, session.getCurrentAccount());
+            assertNotEquals(testUser, session.getCurrentAccount());
+        }
     }
 
-    @Test
-    void isUserReturnsFalseWhenAdminLoggedIn() {
-        // Arrange
-        session.setCurrentAccount(testAdmin);
+    // ========== Parameterized & Stress Tests ==========
 
-        // Act
-        boolean isUser = session.isUser();
+    @Nested
+    @DisplayName("Parameterized & Stress Tests")
+    class ParameterizedAndStressTests {
 
-        // Assert
-        assertFalse(isUser);
+        @ParameterizedTest
+        @ValueSource(ints = { 1, 5, 10, 50, 100 })
+        @DisplayName("should handle rapid state transitions with consistency")
+        void stressTestRapidTransitions(int iterations) {
+            for (int i = 0; i < iterations; i++) {
+                // Admin transition
+                session.setCurrentAccount(testAdmin);
+                assertTrue(session.isAdmin(), "Admin should be true at iteration " + i);
+                assertTrue(session.isLoggedIn(), "Should be logged in at iteration " + i);
+                assertFalse(session.isUser(), "User should be false at iteration " + i);
+
+                // User transition
+                session.setCurrentAccount(testUser);
+                assertFalse(session.isAdmin(), "Admin should be false at iteration " + i);
+                assertTrue(session.isLoggedIn(), "Should be logged in at iteration " + i);
+                assertTrue(session.isUser(), "User should be true at iteration " + i);
+            }
+        }
+
+        @Test
+        @DisplayName("should handle setting same account multiple times")
+        void multipleSetSameAccount() {
+            for (int i = 0; i < 10; i++) {
+                session.setCurrentAccount(testAdmin);
+                assertEquals(testAdmin, session.getCurrentAccount());
+                assertTrue(session.isAdmin());
+            }
+        }
+
+        @Test
+        @DisplayName("should handle alternating between two users efficiently")
+        void alternatingBetweenMultipleUsers() {
+            for (int i = 0; i < 20; i++) {
+                if (i % 2 == 0) {
+                    session.setCurrentAccount(testUser);
+                    assertTrue(session.isUser());
+                    assertFalse(session.isAdmin());
+                } else {
+                    session.setCurrentAccount(testUser2);
+                    assertTrue(session.isUser());
+                    assertFalse(session.isAdmin());
+                    assertNotEquals(testUser, session.getCurrentAccount());
+                }
+            }
+        }
+
+        @Test
+        @DisplayName("should maintain performance with repeated operations")
+        void performanceUnderLoad() {
+            long startTime = System.nanoTime();
+
+            for (int i = 0; i < 1000; i++) {
+                session.setCurrentAccount(testAdmin);
+                session.isAdmin();
+                session.isLoggedIn();
+                session.setCurrentAccount(testUser);
+                session.isUser();
+                session.clear();
+            }
+
+            long endTime = System.nanoTime();
+            long durationMs = (endTime - startTime) / 1_000_000;
+
+            // Should complete 1000 iterations in reasonable time (< 100ms)
+            assertTrue(durationMs < 100, "Operations took " + durationMs + "ms, should be faster");
+        }
     }
 
-    @Test
-    void isUserReturnsFalseAfterClearingSession() {
-        // Arrange
-        session.setCurrentAccount(testUser);
-        assertTrue(session.isUser());
+    // ========== Boundary & Edge Case Tests ==========
 
-        // Act
-        session.clear();
-        boolean isUser = session.isUser();
+    @Nested
+    @DisplayName("Boundary & Edge Case Tests")
+    class BoundaryAndEdgeCaseTests {
 
-        // Assert
-        assertFalse(isUser);
-    }
+        @Test
+        @DisplayName("should handle admin with null email gracefully")
+        void adminWithNullEmail() {
+            Admin adminNoEmail = new Admin(99, "noemail", "pass", null);
+            session.setCurrentAccount(adminNoEmail);
 
-    @Test
-    void isUserChangesAfterSwitchingAccounts() {
-        // Arrange
-        session.setCurrentAccount(testUser);
-        assertTrue(session.isUser());
+            assertEquals(adminNoEmail, session.getCurrentAccount());
+            assertTrue(session.isAdmin());
+        }
 
-        // Act
-        session.setCurrentAccount(testAdmin);
-        boolean isUser = session.isUser();
+        @Test
+        @DisplayName("should handle user with special characters in name")
+        void userWithSpecialCharactersInName() {
+            User specialUser = new User(100, "user-_@123", "pass", "user@example.com");
+            session.setCurrentAccount(specialUser);
 
-        // Assert
-        assertFalse(isUser);
-    }
+            assertEquals(specialUser, session.getCurrentAccount());
+            assertTrue(session.isUser());
+        }
 
-    @Test
-    void isUserReturnsFalseAfterSettingNull() {
-        // Arrange
-        session.setCurrentAccount(testUser);
-        assertTrue(session.isUser());
+        @Test
+        @DisplayName("should handle rapid clear operations")
+        void rapidClearOperations() {
+            session.setCurrentAccount(testAdmin);
+            session.clear();
+            session.clear();
+            session.clear();
 
-        // Act
-        session.setCurrentAccount(null);
-        boolean isUser = session.isUser();
+            assertNull(session.getCurrentAccount());
+            assertFalse(session.isLoggedIn());
+        }
 
-        // Assert
-        assertFalse(isUser);
-    }
+        @Test
+        @DisplayName("should handle null check followed by operations")
+        void nullCheckFollowedByOperations() {
+            assertNull(session.getCurrentAccount());
+            assertFalse(session.isLoggedIn());
 
-    // ========== State Management Tests ==========
+            session.setCurrentAccount(testUser);
+            assertNotNull(session.getCurrentAccount());
+            assertTrue(session.isLoggedIn());
+        }
 
-    @Test
-    void adminAndUserAreNeverBothTrue() {
-        // Arrange & Act
-        session.setCurrentAccount(testAdmin);
+        @Test
+        @DisplayName("should preserve state across multiple assertion calls")
+        void statePreservationAcrossAssertions() {
+            session.setCurrentAccount(testAdmin);
 
-        // Assert
-        assertTrue(session.isAdmin());
-        assertFalse(session.isUser());
-        assertFalse(session.isAdmin() && session.isUser()); // Both should never be true
-
-        // Act again
-        session.setCurrentAccount(testUser);
-
-        // Assert
-        assertFalse(session.isAdmin());
-        assertTrue(session.isUser());
-        assertFalse(session.isAdmin() && session.isUser()); // Both should never be true
-    }
-
-    @Test
-    void isLoggedInCorrelatesWithCurrentAccount() {
-        // Arrange & Act
-        session.setCurrentAccount(testAdmin);
-
-        // Assert
-        assertEquals(session.isLoggedIn(), session.getCurrentAccount() != null);
-
-        // Act again
-        session.clear();
-
-        // Assert
-        assertEquals(session.isLoggedIn(), session.getCurrentAccount() != null);
-
-        // Act again
-        session.setCurrentAccount(testUser);
-
-        // Assert
-        assertEquals(session.isLoggedIn(), session.getCurrentAccount() != null);
-    }
-
-    @Test
-    void sequenceOfOperations() {
-        // Arrange & Act - Test complex sequence of operations
-        assertFalse(session.isLoggedIn());
-
-        session.setCurrentAccount(testUser);
-        assertTrue(session.isLoggedIn());
-        assertTrue(session.isUser());
-        assertFalse(session.isAdmin());
-
-        session.setCurrentAccount(testAdmin);
-        assertTrue(session.isLoggedIn());
-        assertTrue(session.isAdmin());
-        assertFalse(session.isUser());
-
-        session.clear();
-        assertFalse(session.isLoggedIn());
-        assertFalse(session.isAdmin());
-        assertFalse(session.isUser());
-
-        session.setCurrentAccount(testUser);
-        assertTrue(session.isLoggedIn());
-        assertTrue(session.isUser());
-
-        // Assert all values at the end
-        assertEquals(testUser, session.getCurrentAccount());
-        assertTrue(session.isLoggedIn());
-        assertTrue(session.isUser());
-        assertFalse(session.isAdmin());
+            // Multiple assertions shouldn't change state
+            for (int i = 0; i < 5; i++) {
+                assertEquals(testAdmin, session.getCurrentAccount());
+                assertTrue(session.isAdmin());
+                assertTrue(session.isLoggedIn());
+            }
+        }
     }
 }

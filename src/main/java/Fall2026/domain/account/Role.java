@@ -3,6 +3,7 @@ package Fall2026.domain.account;
 
 import Fall2026.domain.exceptions.ValidationException;
 import Fall2026.util.Validators;
+import java.util.Objects;
 
 //role won't have types it's added in child classes
 public abstract class Role {
@@ -53,5 +54,18 @@ public abstract class Role {
         this.username = username;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof Role)) return false;
+        Role role = (Role) o;
+        return ID == role.ID &&
+                Objects.equals(username, role.username) &&
+                Objects.equals(email, role.email);
+    }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(ID, username, email);
+    }
 }
