@@ -88,7 +88,10 @@ public class AppointmentService {
         // Build a temporary appointment to validate against strategy rules
         Appointment appointment = findAppointmentBySlot(slot);
         if (appointment == null) {
-            appointment = new Appointment(slot, description, maxCapacity, type);
+            String owner = (session != null && session.isUser())
+                    ? session.getCurrentAccount().getUsername()
+                    : "";
+            appointment = new Appointment(slot, description, maxCapacity, type, owner);
             strategy.validate(appointment);// ← throws ValidationException if rules violated
             if (strategy.isAutoApproved()) {
                 appointment.setStatus(Appointment.AppointmentStatus.CONFIRMED);
@@ -162,6 +165,16 @@ public class AppointmentService {
     // --- Utility ---
     public List<Appointment> getAllAppointments() {
         return appointments;
+    }
+
+    public List<Appointment> getAppointmentsForUser(String username) {
+        List<Appointment> result = new ArrayList<>();
+        for (Appointment a : appointments) {
+            if (username != null && username.equals(a.getOwnerUsername())) {
+                result.add(a);
+            }
+        }
+        return result;
     }
 
     Appointment findAppointmentBySlot(TimeSlot slot) {

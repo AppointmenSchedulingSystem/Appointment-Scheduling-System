@@ -44,7 +44,8 @@ public class AppointmentFileManager {
                     + appt.getAppointmentType()  + ","
                     + appt.getStatus()           + ","
                     + appt.getDescription()      + ","
-                    + appt.getCurrentBookings();
+                    + appt.getCurrentBookings()  + ","
+                    + appt.getOwnerUsername();
             lines.add(line);
         }
 
@@ -68,8 +69,8 @@ public class AppointmentFileManager {
 
         for (String line : lines) {
             try {
-                String[] parts = line.split(",", 7);
-                if (parts.length != 7) {
+                String[] parts = line.split(",", 8);
+                if (parts.length != 8) {
                     System.out.println("Skipping invalid appointment line: " + line);
                     continue;
                 }
@@ -82,6 +83,7 @@ public class AppointmentFileManager {
                         Appointment.AppointmentStatus.valueOf(parts[4].trim());
                 String description     = parts[5].trim();
                 int currentBookings    = Integer.parseInt(parts[6].trim());
+                String ownerUsername = parts[7].trim();
 
                 // find the matching TimeSlot in the schedule
                 TimeSlot matchedSlot = findSlot(date, startTime, endTime);
@@ -91,7 +93,7 @@ public class AppointmentFileManager {
                 }
 
                 Appointment appt = new Appointment(
-                        matchedSlot, description, matchedSlot.getMaxCapacity(), type);
+                        matchedSlot, description, matchedSlot.getMaxCapacity(), type, ownerUsername);
                 appt.setStatus(status);
 
                 // restore booking count

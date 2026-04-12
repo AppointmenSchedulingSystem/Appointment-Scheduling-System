@@ -10,6 +10,8 @@ public class Appointment {
     private AppointmentStatus status;
     private final AppointmentType appointmentType;
 
+    private String ownerUsername;
+
     private int currentBookings;
     private String userEmail;
 
@@ -17,7 +19,7 @@ public class Appointment {
         CONFIRMED, PENDING, CANCELLED
     }
 
-    public Appointment(TimeSlot timeSlot, String description, int maxCapacity, AppointmentType appointmentType) {
+    public Appointment(TimeSlot timeSlot, String description, int maxCapacity, AppointmentType appointmentType,String ownerUsername) {
         if (timeSlot == null)    throw new ValidationException("TimeSlot cannot be null.");
         if (description == null) description = "";
         if (maxCapacity <= 0)    throw new ValidationException("maxCapacity must be positive.");
@@ -29,6 +31,7 @@ public class Appointment {
         this.appointmentType = appointmentType;
         this.currentBookings = 0;
         this.status          = AppointmentStatus.CONFIRMED;
+        this.ownerUsername = ownerUsername == null ? "" : ownerUsername;
     }
 
     public AppointmentType getAppointmentType() {
@@ -57,6 +60,8 @@ public class Appointment {
     public boolean isFull() {
         return currentBookings >= maxCapacity;
     }
+    public String getOwnerUsername() { return ownerUsername; }
+
 
     public boolean addBooking() {
         if (isFull()) return false;
