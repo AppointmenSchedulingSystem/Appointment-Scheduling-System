@@ -143,7 +143,7 @@ class AuthServiceTest {
     @Test
     void login_shouldReturnUser_whenUserCredentialsAreCorrect() throws IOException {
         when(adminFileManager.findAdmin("sara")).thenReturn(null);
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         Role result = authService.login("sara", "pass99");
 
@@ -154,7 +154,7 @@ class AuthServiceTest {
     @Test
     void login_shouldReturnNull_whenPasswordIsWrong() throws IOException {
         when(adminFileManager.findAdmin("sara")).thenReturn(null);
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         Role result = authService.login("sara", "wrongPassword");
 
@@ -164,7 +164,7 @@ class AuthServiceTest {
     @Test
     void login_shouldReturnNull_whenUserDoesNotExist() throws IOException {
         when(adminFileManager.findAdmin("ghost")).thenReturn(null);
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         Role result = authService.login("ghost", "anyPassword");
 
@@ -174,7 +174,7 @@ class AuthServiceTest {
     @Test
     void login_shouldSkipEmptyLines_andStillFindUser() throws IOException {
         when(adminFileManager.findAdmin("sara")).thenReturn(null);
-        writeTempUsersFile("", "   ", "1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("", "   ", "1,sara,pass99,sara@test.com");
 
         Role result = authService.login("sara", "pass99");
 
@@ -184,7 +184,7 @@ class AuthServiceTest {
     @Test
     void login_shouldSkipMalformedLines_andStillFindUser() throws IOException {
         when(adminFileManager.findAdmin("sara")).thenReturn(null);
-        writeTempUsersFile("CORRUPTED_LINE", "1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("CORRUPTED_LINE", "1,sara,pass99,sara@test.com");
 
         Role result = authService.login("sara", "pass99");
 
@@ -255,7 +255,7 @@ class AuthServiceTest {
 
     @Test
     void loginUser_shouldReturnTrue_whenCredentialsMatch() throws IOException {
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser("ahmed", "secret");
 
@@ -264,7 +264,7 @@ class AuthServiceTest {
 
     @Test
     void loginUser_shouldReturnFalse_whenPasswordIsWrong() throws IOException {
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser("ahmed", "wrongPass");
 
@@ -273,7 +273,7 @@ class AuthServiceTest {
 
     @Test
     void loginUser_shouldReturnFalse_whenUserDoesNotExist() throws IOException {
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser("nobody", "secret");
 
@@ -300,7 +300,7 @@ class AuthServiceTest {
 
     @Test
     void registerUser_shouldThrowValidationException_whenDuplicateUsername() throws IOException {
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         assertThrows(ValidationException.class,
                 () -> authService.registerUser("sara", "newPass", "other@test.com"));
@@ -312,7 +312,7 @@ class AuthServiceTest {
 
     @Test
     void getUserByUsername_shouldReturnUser_whenUserExists() throws IOException {
-        writeTempUsersFile("1,john,pass123,john@test.com,USER");
+        writeTempUsersFile("1,john,pass123,john@test.com");
 
         User result = authService.getUserByUsername("john");
 
@@ -324,7 +324,7 @@ class AuthServiceTest {
 
     @Test
     void getUserByUsername_shouldReturnNull_whenUserDoesNotExist() throws IOException {
-        writeTempUsersFile("1,john,pass123,john@test.com,USER");
+        writeTempUsersFile("1,john,pass123,john@test.com");
 
         User result = authService.getUserByUsername("ghost");
 
@@ -343,7 +343,7 @@ class AuthServiceTest {
     @Test
     void getUserByUsername_shouldSkipMalformedLines_andFindUser() throws IOException {
         // Malformed line is skipped because it doesn't have 4+ fields
-        writeTempUsersFile("CORRUPTED", "1,john,pass123,john@test.com,USER");
+        writeTempUsersFile("CORRUPTED", "1,john,pass123,john@test.com");
 
         User result = authService.getUserByUsername("john");
 
@@ -353,7 +353,7 @@ class AuthServiceTest {
 
     @Test
     void getUserByUsername_shouldSkipEmptyLines_andFindUser() throws IOException {
-        writeTempUsersFile("", "   ", "1,john,pass123,john@test.com,USER");
+        writeTempUsersFile("", "   ", "1,john,pass123,john@test.com");
 
         User result = authService.getUserByUsername("john");
 
@@ -395,7 +395,7 @@ class AuthServiceTest {
 
     @Test
     void loginUser_shouldReturnFalse_whenUsernameDoesNotMatch() throws IOException {
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser("different", "secret");
 
@@ -473,7 +473,7 @@ class AuthServiceTest {
     @Test
     void login_shouldReturnNull_whenBothAdminAndUserFail() throws IOException {
         when(adminFileManager.findAdmin("ghost")).thenReturn(null);
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         Role result = authService.login("ghost", "wrongpass");
 
@@ -483,7 +483,7 @@ class AuthServiceTest {
     @Test
     void login_shouldSetSessionForUser_whenUserCredentialsMatch_Fresh() throws IOException {
         when(adminFileManager.findAdmin("sara")).thenReturn(null);
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         Role result = authService.login("sara", "pass99");
 
@@ -553,7 +553,7 @@ class AuthServiceTest {
     void loginUser_doesNotCallValidateLoginInput() throws IOException {
         // loginUser() does NOT call validateLoginInput (unlike loginAdmin and login())
         // It returns false on null/empty rather than throwing
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser(null, "pass");
 
@@ -564,7 +564,7 @@ class AuthServiceTest {
     void loginUser_shouldReturnTrue_andNotSetSession() throws IOException {
         // CRITICAL: loginUser() returns boolean and should NOT call session.setCurrentAccount()
         // This is different from login() which sets session
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser("ahmed", "secret");
 
@@ -612,7 +612,7 @@ class AuthServiceTest {
     @Test
     void getUserByUsername_shouldFindUser_with4OrMoreFields() throws IOException {
         // Tests successful parse with 4+ fields
-        writeTempUsersFile("1,john,pass123,john@test.com,USER,extraField");
+        writeTempUsersFile("1,john,pass123,john@test.com,extraField");
 
         User result = authService.getUserByUsername("john");
 
@@ -631,7 +631,7 @@ class AuthServiceTest {
         // login() should fall through to user login attempt
 
         when(adminFileManager.findAdmin("sara")).thenReturn(null);
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         Role result = authService.login("sara", "pass99");
 
@@ -676,7 +676,7 @@ class AuthServiceTest {
         try {
             System.setProperty("user.dir", testDir.toString());
             Files.write(testDir.resolve("users.txt"),
-                java.util.List.of("1,sara,pass99,sara@test.com,USER"));
+                java.util.List.of("1,sara,pass99,sara@test.com"));
 
             // Try to register duplicate user
             assertThrows(ValidationException.class,
@@ -694,7 +694,7 @@ class AuthServiceTest {
         try {
             System.setProperty("user.dir", testDir.toString());
             Files.write(testDir.resolve("users.txt"),
-                java.util.List.of("1,sara,pass99,sara@test.com,USER"));
+                java.util.List.of("1,sara,pass99,sara@test.com"));
 
             // Register different user should succeed
             authService.registerUser("john", "pass123", "john@test.com");
@@ -754,9 +754,9 @@ class AuthServiceTest {
         // Tests ID increment logic in registerUser() lines 104-115
         // This tests the if (id >= newId) condition at line 112
         writeTempUsersFile(
-                "1,user1,pass1,user1@test.com,USER",
-                "5,user2,pass2,user2@test.com,USER",
-                "3,user3,pass3,user3@test.com,USER"
+                "1,user1,pass1,user1@test.com",
+                "5,user2,pass2,user2@test.com",
+                "3,user3,pass3,user3@test.com"
         );
 
         authService.registerUser("newuser", "pass", "new@test.com");
@@ -781,8 +781,8 @@ class AuthServiceTest {
     void registerUser_shouldSkipMalformedIdLines() throws IOException {
         // Tests NumberFormatException handling in registerUser() line 113
         writeTempUsersFile(
-                "INVALID,user1,pass1,user1@test.com,USER",
-                "5,user2,pass2,user2@test.com,USER"
+                "INVALID,user1,pass1,user1@test.com",
+                "5,user2,pass2,user2@test.com"
         );
 
         authService.registerUser("newuser", "pass", "new@test.com");
@@ -798,8 +798,8 @@ class AuthServiceTest {
         // When file has bad ID, should skip and continue
         when(adminFileManager.findAdmin("sara")).thenReturn(null);
         writeTempUsersFile(
-                "NOTANUMBER,baduser,pass,bad@test.com,USER",
-                "1,sara,pass99,sara@test.com,USER"
+                "NOTANUMBER,baduser,pass,bad@test.com",
+                "1,sara,pass99,sara@test.com"
         );
 
         Role result = authService.login("sara", "pass99");
@@ -812,8 +812,8 @@ class AuthServiceTest {
     void getUserByUsername_shouldSkipMalformedIdParsing() throws IOException {
         // Tests Integer.parseInt in getUserByUsername()
         writeTempUsersFile(
-                "NOTANUMBER,baduser,pass,bad@test.com,USER",
-                "1,john,pass123,john@test.com,USER"
+                "NOTANUMBER,baduser,pass,bad@test.com",
+                "1,john,pass123,john@test.com"
         );
 
         User result = authService.getUserByUsername("john");
@@ -954,7 +954,7 @@ class AuthServiceTest {
     void loginAdminSafe_shouldReturnNull_whenAdminNull() throws IOException {
         // Tests line 223-225: when admin is null (first check in loginAdminSafe)
         when(adminFileManager.findAdmin("ghost")).thenReturn(null);
-        writeTempUsersFile("1,sara,pass99,sara@test.com,USER");
+        writeTempUsersFile("1,sara,pass99,sara@test.com");
 
         Role result = authService.login("ghost", "anypass");
 
@@ -982,7 +982,7 @@ class AuthServiceTest {
     @Test
     void loginUser_shouldHandleNullUsername_gracefully() throws IOException {
         // Tests line 49: fileUsername.equals(username) with null username (should not crash)
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser(null, "secret");
 
@@ -992,7 +992,7 @@ class AuthServiceTest {
     @Test
     void loginUser_shouldHandleNullPassword_gracefully() throws IOException {
         // Tests line 49: filePassword.equals(password) with null password (should not crash)
-        writeTempUsersFile("1,ahmed,secret,ahmed@test.com,USER");
+        writeTempUsersFile("1,ahmed,secret,ahmed@test.com");
 
         boolean result = authService.loginUser("ahmed", null);
 

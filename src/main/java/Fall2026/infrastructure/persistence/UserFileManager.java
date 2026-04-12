@@ -17,6 +17,14 @@ public class UserFileManager {
             createDefaultUser(); // optional but helpful for testing
         }
     }
+    // Package-private: used only by tests
+    UserFileManager(CredentialStorage storage) {
+        this.storage = storage;
+        loadUsersFromFile();
+        if (users.isEmpty()) {
+            createDefaultUser();
+        }
+    }
     private void loadUsersFromFile() {
         List<String> lines = storage.ReadFromFile(USER_FILE);
         if (lines.isEmpty()) {
@@ -25,17 +33,19 @@ public class UserFileManager {
         }
 
         for (String line : lines) {
-            String[] parts = line.split(",");
-            // expected: id,username,password,email
-            if (parts.length == 4) {
-                int id = Integer.parseInt(parts[0].trim());
-                String username = parts[1].trim();
-                String password = parts[2].trim();
-                String email = parts[3].trim();
-
-                users.add(new User(id, username, password, email));
-            } else {
-                System.out.println("Skipping invalid user line (expected 4 parts): " + line);
+            try {
+                String[] parts = line.split(",");
+                if (parts.length == 4) {
+                    int id       = Integer.parseInt(parts[0].trim());
+                    String username = parts[1].trim();
+                    String password = parts[2].trim();
+                    String email    = parts[3].trim();
+                    users.add(new User(id, username, password, email));
+                } else {
+                    System.out.println("Skipping invalid user line: " + line);
+                }
+            } catch (Exception e) {
+                System.out.println("Skipping invalid user line '" + line + "': " + e.getMessage());
             }
         }
 

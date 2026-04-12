@@ -20,7 +20,12 @@ public class ScheduleFileManager {
         this.schedule = new Schedule();
         loadSlotsFromFile();
     }
-
+    // Package-private: used only by tests
+    ScheduleFileManager(Schedule schedule, CredentialStorage storage) {
+        this.schedule = schedule;
+        this.storage  = storage;
+        loadSlotsFromFile();
+    }
     /**
      * Constructor that accepts an existing Schedule object and loads slots into it.
      * Used by App.java to load slots into the shared Schedule instance.

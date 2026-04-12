@@ -18,6 +18,15 @@ public class AdminFileManager {
             createDefaultAdmin();
         }
     }
+    // Package-private: used only by tests
+    AdminFileManager(CredentialStorage storage) {
+        this.storage = storage;
+        loadAdminsFromFile();
+        if (admins.isEmpty()) {
+            createDefaultAdmin();
+        }
+    }
+
 
     private void loadAdminsFromFile() {
         List<String> lines = storage.ReadFromFile(ADMIN_FILE);

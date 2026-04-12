@@ -15,6 +15,8 @@ public class Schedule {
         allSlots.add(slot);
     }
 
+
+
     /**
      * Removes a time slot from the schedule
      */

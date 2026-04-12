@@ -22,6 +22,13 @@ public class AppointmentFileManager {
         this.schedule = schedule;
     }
 
+
+    // Package-private: used only by tests
+    AppointmentFileManager(Schedule schedule, CredentialStorage storage) {
+        this.schedule = schedule;
+        this.storage  = storage;
+    }
+
     /**
      * Save all appointments to Appointments.txt
      * Format: date,startTime,endTime,type,status,description,currentBookings
