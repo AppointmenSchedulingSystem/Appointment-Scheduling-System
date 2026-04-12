@@ -1,8 +1,10 @@
 ### Appointment-Scheduling-System
-##-Ahmad Daghlas 12218563
-##-Mohanad Hamad 122
-##-Yazan Salem 122
+    Ahmad Daghlas 12218563
 
+    Mohanad Hamad 12217691
+
+    Yazan Salem 12240617
+--
 Code structure for an appointment scheduling system.
 ```aiignore
 .

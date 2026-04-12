@@ -15,6 +15,8 @@ import Fall2026.infrastructure.persistence.AppointmentFileManager;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+
 /**
  * Service layer responsible for managing appointment booking operations.
  *
@@ -47,6 +49,8 @@ public class AppointmentService {
 
     /** File manager responsible for persisting and loading appointments. */
     private AppointmentFileManager appointmentFileManager;
+
+
 
     // -------------------------------------------------------------------------
     // Constructors
@@ -182,7 +186,10 @@ public class AppointmentService {
 
         Appointment appointment = findAppointmentBySlot(slot);
         if (appointment == null) {
-            appointment = new Appointment(slot, description, maxCapacity, type);
+            String owner = (session != null && session.isUser())
+                    ? session.getCurrentAccount().getUsername()
+                    : "";
+            appointment = new Appointment(slot, description, maxCapacity, type, owner);
             strategy.validate(appointment);
             if (strategy.isAutoApproved()) {
                 appointment.setStatus(Appointment.AppointmentStatus.CONFIRMED);
@@ -386,4 +393,12 @@ public class AppointmentService {
             appointmentFileManager.saveAppointmentsToFile(appointments);
         }
     }
+
+    public List<Appointment> getAppointmentsForUser(String username) {
+        return appointments.stream()
+                .filter(a -> username.equals(a.getOwnerUsername()))
+                .collect(Collectors.toList());
+    }
+
+
 }

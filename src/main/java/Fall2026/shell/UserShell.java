@@ -236,7 +236,8 @@ public class UserShell {
 
 
     private void handleCancel() {
-        List<Appointment> appointments = appointmentService.getAllAppointments();
+        List<Appointment> appointments = appointmentService.getAppointmentsForUser(
+                session.getCurrentAccount().getUsername());
 
         if (appointments.isEmpty()) {
             System.out.println("  No appointments to cancel.");
@@ -283,7 +284,8 @@ public class UserShell {
     }
 
     private void handleModify() {
-        List<Appointment> appointments = appointmentService.getAllAppointments();
+        List<Appointment> appointments = appointmentService.getAppointmentsForUser(
+                session.getCurrentAccount().getUsername());
 
         if (appointments.isEmpty()) {
             System.out.println("  No appointments to modify.");
