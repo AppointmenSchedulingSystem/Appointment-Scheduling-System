@@ -69,7 +69,7 @@ class FollowUpRuleStrategyTest {
         @DisplayName("passes for appointment at max duration (45 minutes)")
         void passesAtMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 45), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.FOLLOW_UP);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.FOLLOW_UP, "");
 
             strategy.validate(appointment);
         }
@@ -78,7 +78,7 @@ class FollowUpRuleStrategyTest {
         @DisplayName("throws for appointment one minute over max duration")
         void throwsWhenOverMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 46), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.FOLLOW_UP);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.FOLLOW_UP, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -87,7 +87,7 @@ class FollowUpRuleStrategyTest {
         @DisplayName("throws for appointment with capacity exceeding max")
         void throwsWhenCapacityExceedsMax() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 45), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.FOLLOW_UP);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.FOLLOW_UP, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }

@@ -48,7 +48,8 @@ class AdminAppointmentServiceTest {
                 testTimeSlot,
                 "Regular Checkup",
                 1,
-                AppointmentType.IN_PERSON
+                AppointmentType.IN_PERSON,
+                ""
         );
     }
 
@@ -136,7 +137,8 @@ class AdminAppointmentServiceTest {
                 newTimeSlot,
                 "Regular Checkup",
                 1,
-                AppointmentType.IN_PERSON
+                AppointmentType.IN_PERSON,
+                ""
         );
 
         doNothing().when(authService).requireAdmin();
@@ -209,7 +211,8 @@ class AdminAppointmentServiceTest {
                 newTimeSlot,
                 "Updated Description",
                 1,
-                AppointmentType.IN_PERSON
+                AppointmentType.IN_PERSON,
+                ""
         );
 
         doNothing().when(authService).requireAdmin();
@@ -242,7 +245,8 @@ class AdminAppointmentServiceTest {
                 newTimeSlot,
                 newDescription,
                 1,
-                AppointmentType.FOLLOW_UP
+                AppointmentType.FOLLOW_UP,
+                ""
         );
 
         doNothing().when(authService).requireAdmin();
@@ -316,7 +320,8 @@ class AdminAppointmentServiceTest {
                 newTimeSlot,
                 "",
                 1,
-                AppointmentType.IN_PERSON
+                AppointmentType.IN_PERSON,
+                ""
         );
 
         doNothing().when(authService).requireAdmin();

@@ -218,7 +218,7 @@ public class AppointmentServiceMockSetup {
      */
     public Appointment createAppointment(TimeSlot slot, String description,
                                         int capacity, AppointmentType type) {
-        return new Appointment(slot, description, capacity, type);
+        return new Appointment(slot, description, capacity, type, "");
     }
 
     /**
@@ -267,7 +267,7 @@ public class AppointmentServiceMockSetup {
      * Factory: Create fully booked appointment
      */
     public Appointment createFullyBookedAppointment(TimeSlot slot, int capacity) {
-        Appointment appt = new Appointment(slot, "Full", capacity, AppointmentType.IN_PERSON);
+        Appointment appt = new Appointment(slot, "Full", capacity, AppointmentType.IN_PERSON, "");
         for (int i = 0; i < capacity; i++) {
             appt.addBooking();
         }
@@ -330,7 +330,7 @@ public class AppointmentServiceMockSetup {
      */
     public Appointment createFullyBookedScenario(@SuppressWarnings("unused") TimeSlot slot) {
         TimeSlot fullSlot = createFullTimeSlot(1);
-        Appointment fullAppt = new Appointment(fullSlot, "Booked", 1, AppointmentType.IN_PERSON);
+        Appointment fullAppt = new Appointment(fullSlot, "Booked", 1, AppointmentType.IN_PERSON, "");
         fullAppt.addBooking();
         return fullAppt;
     }

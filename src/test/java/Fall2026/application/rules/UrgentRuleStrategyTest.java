@@ -69,7 +69,7 @@ class UrgentRuleStrategyTest {
         @DisplayName("passes for appointment at max duration (30 minutes)")
         void passesAtMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 30), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT, "");
 
             strategy.validate(appointment);
         }
@@ -78,7 +78,7 @@ class UrgentRuleStrategyTest {
         @DisplayName("throws for appointment one minute over max duration")
         void throwsWhenOverMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 31), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -87,7 +87,7 @@ class UrgentRuleStrategyTest {
         @DisplayName("throws for appointment with capacity exceeding max")
         void throwsWhenCapacityExceedsMax() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 30), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.URGENT, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }

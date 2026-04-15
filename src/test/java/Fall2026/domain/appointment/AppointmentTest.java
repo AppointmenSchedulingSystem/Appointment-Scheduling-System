@@ -24,7 +24,7 @@ class AppointmentTest {
     @BeforeEach
     void setUp() {
         validSlot = new TimeSlot(LocalDate.of(2026, 12, 1), LocalTime.of(9, 0), LocalTime.of(10, 0), 2);
-        appointment = new Appointment(validSlot, "Consultation", 2, AppointmentType.IN_PERSON);
+        appointment = new Appointment(validSlot, "Consultation", 2, AppointmentType.IN_PERSON, "");
     }
 
     @Nested
@@ -34,7 +34,7 @@ class AppointmentTest {
         @Test
         @DisplayName("creates appointment with valid inputs")
         void createsWithValidInputs() {
-            Appointment created = new Appointment(validSlot, "Check-up", 3, AppointmentType.ASSESSMENT);
+            Appointment created = new Appointment(validSlot, "Check-up", 3, AppointmentType.ASSESSMENT, "");
             assertEquals(validSlot, created.getTimeSlot());
             assertEquals("Check-up", created.getDescription());
             assertEquals(3, created.getMaxCapacity());
@@ -46,34 +46,34 @@ class AppointmentTest {
         @DisplayName("throws when time slot is null")
         void throwsWhenTimeSlotIsNull() {
             assertThrows(ValidationException.class,
-                    () -> new Appointment(null, "desc", 1, AppointmentType.GROUP));
+                    () -> new Appointment(null, "desc", 1, AppointmentType.GROUP, ""));
         }
 
         @Test
         @DisplayName("throws when appointment type is null")
         void throwsWhenAppointmentTypeIsNull() {
             assertThrows(ValidationException.class,
-                    () -> new Appointment(validSlot, "desc", 1, null));
+                    () -> new Appointment(validSlot, "desc", 1, null, ""));
         }
 
         @Test
         @DisplayName("throws when capacity is zero")
         void throwsWhenCapacityIsZero() {
             assertThrows(ValidationException.class,
-                    () -> new Appointment(validSlot, "desc", 0, AppointmentType.INDIVIDUAL));
+                    () -> new Appointment(validSlot, "desc", 0, AppointmentType.INDIVIDUAL, ""));
         }
 
         @Test
         @DisplayName("throws when capacity is negative")
         void throwsWhenCapacityIsNegative() {
             assertThrows(ValidationException.class,
-                    () -> new Appointment(validSlot, "desc", -1, AppointmentType.INDIVIDUAL));
+                    () -> new Appointment(validSlot, "desc", -1, AppointmentType.INDIVIDUAL, ""));
         }
 
         @Test
         @DisplayName("uses empty description when null is provided")
         void usesEmptyDescriptionForNullInput() {
-            Appointment created = new Appointment(validSlot, null, 1, AppointmentType.VIRTUAL);
+            Appointment created = new Appointment(validSlot, null, 1, AppointmentType.VIRTUAL, "");
             assertEquals("", created.getDescription());
         }
     }
@@ -106,7 +106,7 @@ class AppointmentTest {
         @Test
         @DisplayName("handles boundary capacity of one")
         void handlesBoundaryCapacityOne() {
-            Appointment single = new Appointment(validSlot, "Single", 1, AppointmentType.INDIVIDUAL);
+            Appointment single = new Appointment(validSlot, "Single", 1, AppointmentType.INDIVIDUAL, "");
 
             assertTrue(single.addBooking());
             assertFalse(single.addBooking());
@@ -205,14 +205,14 @@ class AppointmentTest {
         @Test
         @DisplayName("returns correct value for another enum option")
         void returnsAnotherEnumOption() {
-            Appointment virtual = new Appointment(validSlot, "Virtual", 1, AppointmentType.VIRTUAL);
+            Appointment virtual = new Appointment(validSlot, "Virtual", 1, AppointmentType.VIRTUAL, "");
             assertEquals(AppointmentType.VIRTUAL, virtual.getAppointmentType());
         }
 
         @Test
         @DisplayName("handles boundary enum value at declaration end")
         void handlesBoundaryEnumValueEnd() {
-            Appointment group = new Appointment(validSlot, "Group", 4, AppointmentType.GROUP);
+            Appointment group = new Appointment(validSlot, "Group", 4, AppointmentType.GROUP, "");
             assertEquals(AppointmentType.GROUP, group.getAppointmentType());
         }
     }

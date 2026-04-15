@@ -78,10 +78,10 @@ class AppointmentFileManagerTest {
         anotherSlot  = new TimeSlot(LocalDate.of(2026, 12, 2),
                 LocalTime.of(11, 0), LocalTime.of(12, 0), 1);
 
-        confirmedAppt = new Appointment(futureSlot, "Checkup", 2, AppointmentType.IN_PERSON);
+        confirmedAppt = new Appointment(futureSlot, "Checkup", 2, AppointmentType.IN_PERSON, "");
         confirmedAppt.addBooking();
 
-        pendingAppt = new Appointment(anotherSlot, "Group Session", 20, AppointmentType.GROUP);
+        pendingAppt = new Appointment(anotherSlot, "Group Session", 20, AppointmentType.GROUP, "");
         pendingAppt.setStatus(Appointment.AppointmentStatus.PENDING);
 
         manager = new AppointmentFileManager(schedule, storage);
@@ -187,7 +187,7 @@ class AppointmentFileManagerTest {
             when(storage.WriteToFile(eq(APPOINTMENTS_FILE), org.mockito.ArgumentMatchers.any()))
                     .thenReturn(true);
             Appointment unbooked = new Appointment(
-                    futureSlot, "Empty", 2, AppointmentType.VIRTUAL);
+                    futureSlot, "Empty", 2, AppointmentType.VIRTUAL, "");
 
             manager.saveAppointmentsToFile(List.of(unbooked));
 
@@ -203,7 +203,7 @@ class AppointmentFileManagerTest {
         void recordsFullCapacityBookings() {
             when(storage.WriteToFile(eq(APPOINTMENTS_FILE), org.mockito.ArgumentMatchers.any()))
                     .thenReturn(true);
-            Appointment full = new Appointment(futureSlot, "Full", 2, AppointmentType.IN_PERSON);
+            Appointment full = new Appointment(futureSlot, "Full", 2, AppointmentType.IN_PERSON, "");
             full.addBooking();
             full.addBooking(); // now at capacity of 2
 

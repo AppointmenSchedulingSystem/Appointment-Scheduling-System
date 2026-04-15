@@ -69,7 +69,7 @@ class VirtualRuleStrategyTest {
         @DisplayName("passes for appointment at max duration (60 minutes)")
         void passesAtMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 0), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.VIRTUAL);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.VIRTUAL, "");
 
             strategy.validate(appointment);
         }
@@ -78,7 +78,7 @@ class VirtualRuleStrategyTest {
         @DisplayName("throws for appointment one minute over max duration")
         void throwsWhenOverMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 1), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.VIRTUAL);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.VIRTUAL, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -87,7 +87,7 @@ class VirtualRuleStrategyTest {
         @DisplayName("throws for appointment with capacity exceeding max")
         void throwsWhenCapacityExceedsMax() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 0), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.VIRTUAL);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.VIRTUAL, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }

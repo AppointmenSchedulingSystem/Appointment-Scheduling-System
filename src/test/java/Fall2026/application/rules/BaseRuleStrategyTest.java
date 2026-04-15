@@ -35,7 +35,7 @@ class BaseRuleStrategyTest {
         @DisplayName("passes when duration is exactly at max limit (boundary)")
         void passesWhenDurationAtMaxBoundary() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 30), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT, "");
 
             assertDoesNotThrow(() -> strategy.validate(appointment));
         }
@@ -44,7 +44,7 @@ class BaseRuleStrategyTest {
         @DisplayName("throws when duration exceeds max by one minute")
         void throwsWhenDurationExceedsByOneMinute() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 31), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -53,7 +53,7 @@ class BaseRuleStrategyTest {
         @DisplayName("passes when capacity is exactly at max limit (boundary)")
         void passesWhenCapacityAtMaxBoundary() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 30), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT, "");
 
             assertDoesNotThrow(() -> strategy.validate(appointment));
         }
@@ -62,7 +62,7 @@ class BaseRuleStrategyTest {
         @DisplayName("throws when capacity exceeds max limit")
         void throwsWhenCapacityExceedsMax() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 30), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.URGENT, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -71,7 +71,7 @@ class BaseRuleStrategyTest {
         @DisplayName("throws when both duration and capacity exceed max limits")
         void throwsWhenBothExceedMax() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 0), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.URGENT, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -80,7 +80,7 @@ class BaseRuleStrategyTest {
         @DisplayName("passes when appointment is well within limits")
         void passesWhenWellWithinLimits() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(9, 15), 1);
-            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT);
+            Appointment appointment = new Appointment(slot, "desc", 1, AppointmentType.URGENT, "");
 
             assertDoesNotThrow(() -> strategy.validate(appointment));
         }
@@ -95,7 +95,7 @@ class BaseRuleStrategyTest {
         void assessmentPassesAtMax() {
             BookingRuleStrategy assessmentStrategy = new AssessmentRuleStrategy();
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 30), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT, "");
 
             assertDoesNotThrow(() -> assessmentStrategy.validate(appointment));
         }
@@ -105,7 +105,7 @@ class BaseRuleStrategyTest {
         void assessmentThrowsOver90Minutes() {
             BookingRuleStrategy assessmentStrategy = new AssessmentRuleStrategy();
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 31), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT, "");
 
             assertThrows(ValidationException.class, () -> assessmentStrategy.validate(appointment));
         }
@@ -115,7 +115,7 @@ class BaseRuleStrategyTest {
         void groupPassesAtMaxCapacity() {
             BookingRuleStrategy groupStrategy = new GroupRuleStrategy();
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(11, 0), 20);
-            Appointment appointment = new Appointment(slot, "desc", 20, AppointmentType.GROUP);
+            Appointment appointment = new Appointment(slot, "desc", 20, AppointmentType.GROUP, "");
 
             assertDoesNotThrow(() -> groupStrategy.validate(appointment));
         }
@@ -125,7 +125,7 @@ class BaseRuleStrategyTest {
         void groupThrowsOver20Capacity() {
             BookingRuleStrategy groupStrategy = new GroupRuleStrategy();
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(11, 0), 21);
-            Appointment appointment = new Appointment(slot, "desc", 21, AppointmentType.GROUP);
+            Appointment appointment = new Appointment(slot, "desc", 21, AppointmentType.GROUP, "");
 
             assertThrows(ValidationException.class, () -> groupStrategy.validate(appointment));
         }

@@ -69,7 +69,7 @@ class GroupRuleStrategyTest {
         @DisplayName("passes for appointment at max duration (120 minutes)")
         void passesAtMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(11, 0), 20);
-            Appointment appointment = new Appointment(slot, "desc", 20, AppointmentType.GROUP);
+            Appointment appointment = new Appointment(slot, "desc", 20, AppointmentType.GROUP, "");
 
             strategy.validate(appointment);
         }
@@ -78,7 +78,7 @@ class GroupRuleStrategyTest {
         @DisplayName("throws for appointment one minute over max duration")
         void throwsWhenOverMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(11, 1), 20);
-            Appointment appointment = new Appointment(slot, "desc", 20, AppointmentType.GROUP);
+            Appointment appointment = new Appointment(slot, "desc", 20, AppointmentType.GROUP, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -87,7 +87,7 @@ class GroupRuleStrategyTest {
         @DisplayName("throws for appointment with capacity exceeding max")
         void throwsWhenCapacityExceedsMax() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(11, 0), 21);
-            Appointment appointment = new Appointment(slot, "desc", 21, AppointmentType.GROUP);
+            Appointment appointment = new Appointment(slot, "desc", 21, AppointmentType.GROUP, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }

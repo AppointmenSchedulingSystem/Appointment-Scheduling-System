@@ -69,7 +69,7 @@ class AssessmentRuleStrategyTest {
         @DisplayName("passes for appointment at max duration (90 minutes)")
         void passesAtMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 30), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT, "");
 
             strategy.validate(appointment);
         }
@@ -78,7 +78,7 @@ class AssessmentRuleStrategyTest {
         @DisplayName("throws for appointment one minute over max duration")
         void throwsWhenOverMaxDuration() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 31), 2);
-            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT);
+            Appointment appointment = new Appointment(slot, "desc", 2, AppointmentType.ASSESSMENT, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }
@@ -87,7 +87,7 @@ class AssessmentRuleStrategyTest {
         @DisplayName("throws for appointment with capacity exceeding max")
         void throwsWhenCapacityExceedsMax() {
             TimeSlot slot = new TimeSlot(testDate, LocalTime.of(9, 0), LocalTime.of(10, 30), 3);
-            Appointment appointment = new Appointment(slot, "desc", 3, AppointmentType.ASSESSMENT);
+            Appointment appointment = new Appointment(slot, "desc", 3, AppointmentType.ASSESSMENT, "");
 
             assertThrows(ValidationException.class, () -> strategy.validate(appointment));
         }

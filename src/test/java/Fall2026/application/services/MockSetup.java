@@ -181,7 +181,7 @@ public class MockSetup {
      */
     public Appointment createAppointment(TimeSlot slot, String description,
                                         int capacity, AppointmentType type) {
-        return new Appointment(slot, description, capacity, type);
+        return new Appointment(slot, description, capacity, type, "");
     }
 
     /**
