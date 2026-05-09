@@ -4,7 +4,9 @@ import Fall2026.domain.appointment.AppointmentType;
 
 
 public class AppointmentTypeRuleFactory {
-
+    private AppointmentTypeRuleFactory() {
+        // Utility class — prevent instantiation
+    }
     public static BookingRuleStrategy getStrategy(AppointmentType type) {
         switch (type) {
             case URGENT:     return new UrgentRuleStrategy();

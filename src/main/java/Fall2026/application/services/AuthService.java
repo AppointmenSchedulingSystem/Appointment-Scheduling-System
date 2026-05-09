@@ -16,7 +16,7 @@ public class AuthService {
     private final Session session;
     private final AdminFileManager adminFileManager;
      private final UserFileManager userFileManager ;
-
+     private static final String USERS_FILE = "users.txt";
 
     public AuthService(Session session, AdminFileManager adminFileManager , UserFileManager userFileManager ) {
         this.session = session;
@@ -38,7 +38,7 @@ public class AuthService {
     }
     // Add this when you have user persistence
     public boolean loginUser(String username, String password) {
-        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) continue; // skip empty lines
@@ -101,7 +101,7 @@ public class AuthService {
         int newId = 1;
 
         // Get last used ID
-        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
@@ -115,7 +115,7 @@ public class AuthService {
         } catch (IOException ignored) {}
 
         // Append new user with role USER by default
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("users.txt", true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(USERS_FILE, true))) {
             writer.write(newId + "," + username + "," + password + "," + email + ",USER");
             writer.newLine();
         } catch (IOException e) {
@@ -123,7 +123,7 @@ public class AuthService {
         }
     }
     private boolean userExists(String username) {
-        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) continue; // skip empty lines
@@ -137,36 +137,9 @@ public class AuthService {
         return false;
     }
 
-    private void saveUserToFile(String username, String password, String email) {
-        int newId = 1; // default first ID
-
-        //  Read the file to find the last used ID
-        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.trim().isEmpty()) continue; // skip empty lines
-                String[] parts = line.split(",");
-                if (parts.length < 1) continue; // skip malformed lines
-                try {
-                    int id = Integer.parseInt(parts[0]);
-                    if (id >= newId) newId = id + 1; // increment to get new ID
-                } catch (NumberFormatException ignored) {}
-            }
-        } catch (IOException ignored) {
-            // file might not exist yet, that's okay
-        }
-
-        // 2️⃣ Append the new user to the file
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("users.txt", true))) {
-            writer.write(newId + "," + username + "," + password + "," + email);
-            writer.newLine();
-        } catch (IOException e) {
-            throw new RuntimeException("Error saving user.", e);
-        }
-    }
 
     public User getUserByUsername(String username) {
-        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) continue;
@@ -191,7 +164,7 @@ public class AuthService {
         if (admin != null) return admin;
 
         // Then check users
-        try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(USERS_FILE))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (line.trim().isEmpty()) continue; // skip empty lines
