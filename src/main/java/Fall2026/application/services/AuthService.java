@@ -140,7 +140,7 @@ public class AuthService {
     private void saveUserToFile(String username, String password, String email) {
         int newId = 1; // default first ID
 
-        // 1️⃣ Read the file to find the last used ID
+        //  Read the file to find the last used ID
         try (BufferedReader reader = new BufferedReader(new FileReader("users.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {

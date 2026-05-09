@@ -1,4 +1,5 @@
-1,admin,admin123,
-
+1,admin,admin123,s12218563@stu.najah.edu
 2,ahmad,ahmad123,ahmad@example.com
 3,adminAhmad,ad123,s12218563@stu.najah.edu
+4,adminYazan,yo123,yazam123@gmail.com
+5,adminnew,new123,newemail@gmail.com
