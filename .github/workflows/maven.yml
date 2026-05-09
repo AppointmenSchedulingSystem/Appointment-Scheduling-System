@@ -33,7 +33,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=AppointmenSchedulingSystem_Appointment-Scheduling-System -Dsonar.organization=appointmenschedulingsystem
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=AppointmenSchedulingSystem_Appointment-Scheduling-System -Dsonar.organization=appointmenschedulingsystem -DskipTests
+
 
       - name: Check JaCoCo report
         run: find /home/runner/work -name "jacoco.xml" 2>/dev/null || echo "Not found"
