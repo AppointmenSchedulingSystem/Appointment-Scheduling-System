@@ -14,8 +14,8 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.compiler.source>23</maven.compiler.source>
     <maven.compiler.target>23</maven.compiler.target>
-    <sonar.organization>appointmentschedulingsystem</sonar.organization>
-    <sonar.projectKey>AppointmentSchedulingSystem_Appointment-Scheduling-System</sonar.projectKey>
+    <sonar.organization>appointmenschedulingsystem</sonar.organization>
+    <sonar.projectKey>AppointmenSchedulingSystem_Appointment-Scheduling-System</sonar.projectKey>
     <sonar.host.url>https://sonarcloud.io</sonar.host.url>
   </properties>
 
