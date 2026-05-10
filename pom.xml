@@ -1,5 +1,5 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>Fall2026</groupId>
@@ -31,7 +31,6 @@
       <scope>test</scope>
     </dependency>
 
-    <!-- Source: https://mvnrepository.com/artifact/org.hamcrest/hamcrest -->
     <dependency>
       <groupId>org.hamcrest</groupId>
       <artifactId>hamcrest</artifactId>
@@ -44,7 +43,6 @@
       <artifactId>angus-mail</artifactId>
       <version>2.0.3</version>
     </dependency>
-
 
     <dependency>
       <groupId>com.sun.mail</groupId>
@@ -66,8 +64,8 @@
       <scope>test</scope>
     </dependency>
 
-
   </dependencies>
+
   <build>
     <plugins>
       <plugin>
@@ -83,6 +81,12 @@
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
         <version>0.8.12</version>
+        <configuration>
+          <excludes>
+            <exclude>Fall2026/shell/**</exclude>
+            <exclude>Fall2026/App.class</exclude>
+          </excludes>
+        </configuration>
         <executions>
           <execution>
             <goals><goal>prepare-agent</goal></goals>
@@ -96,6 +100,5 @@
       </plugin>
     </plugins>
   </build>
-
 
 </project>
